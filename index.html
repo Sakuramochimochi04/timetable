@@ -3,61 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ダンスイベント タイムテーブル作成</title>
-    <link rel="stylesheet" href="style.css">
+    <title>ダンスサークル タイムテーブル作成</title>
+    <style>
+        /* CSSをここに統合しました */
+        body { font-family: "Helvetica Neue", Arial, sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { text-align: center; color: #1a73e8; }
+        section { margin-bottom: 40px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        h2 { font-size: 1.2rem; color: #555; margin-bottom: 15px; border-left: 4px solid #1a73e8; padding-left: 10px; }
+        
+        .input-group { display: flex; gap: 10px; margin-bottom: 10px; }
+        input[type="text"], input[type="number"], input[type="time"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        button { cursor: pointer; background: #1a73e8; color: white; border: none; padding: 8px 16px; border-radius: 4px; transition: 0.2s; }
+        button:hover { background: #1557b0; }
+        
+        .chip-list { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; margin: 10px 0; }
+        .chip { background: #e8f0fe; color: #1967d2; padding: 5px 12px; border-radius: 20px; display: flex; align-items: center; font-size: 0.9rem; }
+        .delete-btn { margin-left: 8px; color: #d93025; cursor: pointer; font-weight: bold; }
+        
+        .unit-form { background: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; }
+        .checkbox-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; background: white; padding: 10px; border: 1px solid #eee; height: 120px; overflow-y: auto; margin: 10px 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #f8f9fa; }
+        .rest-row { background: #fff4e5; font-size: 0.9rem; color: #666; }
+        .generate-btn { width: 100%; padding: 15px; font-size: 1.1rem; background: #34a853; margin-top: 20px; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>タイムテーブル作成ツール</h1>
 
-        <section>
-            <h2>1. メンバー登録</h2>
-            <div class="input-group">
-                <input type="text" id="memberInput" placeholder="メンバー名">
-                <button onclick="addMember()">追加</button>
+<div class="container">
+    <h1>タイムテーブル作成ツール</h1>
+
+    <section>
+        <h2>1. メンバー登録</h2>
+        <div class="input-group">
+            <input type="text" id="memberInput" placeholder="名前を入力">
+            <button type="button" id="addMemberBtn">追加</button>
+        </div>
+        <div id="memberList" class="chip-list"></div>
+    </section>
+
+    <section>
+        <h2>2. ユニット登録</h2>
+        <div class="unit-form">
+            <input type="text" id="unitName" placeholder="ユニット名" style="width: 250px;">
+            <div style="margin: 10px 0;">
+                時間：<input type="number" id="unitMin" placeholder="分" style="width: 50px;" min="0"> 分 
+                <input type="number" id="unitSec" placeholder="秒" style="width: 50px;" min="0" max="59"> 秒
             </div>
-            <ul id="memberList" class="chip-list"></ul>
-        </section>
+            <p style="font-size: 0.8rem; margin: 5px 0;">出演メンバーを選択：</p>
+            <div id="unitMemberCheckboxes" class="checkbox-list"></div>
+            <button type="button" id="addUnitBtn">ユニットをリストに追加</button>
+        </div>
+        <ul id="unitListDisplay"></ul>
+    </section>
 
-        <section>
-            <h2>2. ユニット登録</h2>
-            <div class="input-card">
-                <input type="text" id="unitName" placeholder="ユニット名">
-                <div class="time-input">
-                    <input type="number" id="unitMin" placeholder="分" min="0">
-                    <input type="number" id="unitSec" placeholder="秒" min="0" max="59">
-                </div>
-                <div id="unitMemberCheckboxes" class="checkbox-list">
-                    </div>
-                <button onclick="addUnit()">ユニットを追加</button>
-            </div>
-            <ul id="unitList"></ul>
-        </section>
+    <section>
+        <h2>3. 全体設定</h2>
+        <div class="input-group">
+            開始時刻: <input type="time" id="startTime" value="13:00">
+            転換時間: <input type="number" id="transitionSec" value="60" style="width: 60px;"> 秒
+            連続回避休憩: <input type="number" id="restMin" value="5" style="width: 50px;"> 分
+        </div>
+        <button class="generate-btn" id="generateBtn">タイムテーブルを生成する</button>
+    </section>
 
-        <section>
-            <h2>3. スケジュール設定</h2>
-            <div class="settings">
-                <label>開始時刻: <input type="time" id="startTime" value="13:00"></label>
-                <label>転換時間（秒）: <input type="number" id="transitionSec" value="60"></label>
-                <label>最低休憩（分）: <input type="number" id="minRestMin" value="5" title="連続出演回避用"></label>
-            </div>
-            <button class="generate-btn" onclick="generateTimetable()">タイムテーブル生成</button>
-        </section>
+    <section id="resultArea" style="display:none;">
+        <h2>完成したタイムテーブル</h2>
+        <table id="timetable">
+            <thead>
+                <tr>
+                    <th>時刻</th>
+                    <th>内容</th>
+                    <th>出演メンバー</th>
+                    <th>所要時間</th>
+                </tr>
+            </thead>
+            <tbody id="timetableBody"></tbody>
+        </table>
+    </section>
+</div>
 
-        <section id="resultArea" style="display:none;">
-            <h2>完成タイムテーブル</h2>
-            <table id="timetable">
-                <thead>
-                    <tr>
-                        <th>時刻</th>
-                        <th>内容</th>
-                        <th>出演者</th>
-                    </tr>
-                </thead>
-                <tbody id="timetableBody"></tbody>
-            </table>
-        </section>
-    </div>
-    <script src="script.js"></script>
+<script>
+    // データ管理（ブラウザ保存）
+    let members = JSON.parse(localStorage.getItem('dance_members')) || [];
+    let units = JSON.parse(localStorage.getItem('dance_units')) || [];
+
+    // 要素の取得
+    const memberInput = document.getElementById('memberInput');
+    const addMemberBtn = document.getElementById('addMemberBtn');
+    const memberListDiv = document.getElementById('memberList');
+    const unitMemberCheckboxes = document.getElementById('unitMemberCheckboxes');
+    const addUnitBtn = document.getElementById('addUnitBtn');
+    const unitListDisplay = document.getElementById('unitListDisplay');
+    const generateBtn = document.getElementById('generateBtn');
+
+    // 画面の更新（初期化）
+    renderMembers();
+    renderUnits();
+
+    // --- メンバー関連 ---
+    addMemberBtn.addEventListener('click', () => {
+        const name = memberInput.value.trim();
+        if (name) {
+            members.push(name);
+            memberInput.value = '';
+            saveAndRefresh();
+        }
+    });
+
+    function renderMembers() {
+        memberListDiv.innerHTML = '';
+        unitMemberCheckboxes.innerHTML = '';
+        members.forEach((m, i) => {
+            // リスト表示
+            const chip = document.createElement('span');
+            chip.className = 'chip';
+            chip.innerHTML = `${m} <span class="delete-btn" onclick="deleteMember(${i})">×</span>`;
+            memberListDiv.appendChild(chip);
+
+            // ユニット登録用のチェックボックス
+            const label = document.createElement('label');
+            label.style.display = 'block';
+            label.innerHTML = `<input type="checkbox" name="unitMember" value="${m}"> ${m}`;
+            unitMemberCheckboxes.appendChild(label);
+        });
+    }
+
+    window.deleteMember = function(index) {
+        members.splice(index, 1);
+        saveAndRefresh();
+    };
+
+    // --- ユニット関連 ---
+    addUnitBtn.addEventListener('click', () => {
+        const name = document.getElementById('unitName').value.trim();
+        const min = parseInt(document.getElementById('unitMin').value) || 0;
+        const sec = parseInt(document.getElementById('unitSec').value) || 0;
+        const selected = Array.from(document.querySelectorAll('input[name="unitMember"]:checked')).map(el => el.value);
+
+        if (!name || (min === 0 && sec === 0) || selected.length === 0) {
+            alert("ユニット名、時間、メンバーを正しく入力してください");
+            return;
+        }
+
+        units.push({ name, duration: (min * 60) + sec, members: selected });
+        // 入力欄リセット
+        document.getElementById('unitName').value = '';
+        document.getElementById('unitMin').value = '';
+        document.getElementById('unitSec').value = '';
+        saveAndRefresh();
+    });
+
+    function renderUnits() {
+        unitListDisplay.innerHTML = '';
+        units.forEach((u, i) => {
+            const li = document.createElement('li');
+            li.style.marginBottom = "5px";
+            li.innerHTML = `<strong>${u.name}</strong> (${u.duration}秒) - 出演: ${u.members.join(', ')} 
+                            <button onclick="deleteUnit(${i})" style="padding:2px 8px; background:#f44336; font-size:10px;">削除</button>`;
+            unitListDisplay.appendChild(li);
+        });
+    }
+
+    window.deleteUnit = function(index) {
+        units.splice(index, 1);
+        saveAndRefresh();
+    };
+
+    function saveAndRefresh() {
+        localStorage.setItem('dance_members', JSON.stringify(members));
+        localStorage.setItem('dance_units', JSON.stringify(units));
+        renderMembers();
+        renderUnits();
+    }
+
+    // --- タイムテーブル生成 ---
+    generateBtn.addEventListener('click', () => {
+        if (units.length === 0) {
+            alert("ユニットを登録してください");
+            return;
+        }
+
+        const startTimeStr = document.getElementById('startTime').value;
+        const transition = parseInt(document.getElementById('transitionSec').value) || 0;
+        const restSec = (parseInt(document.getElementById('restMin').value) || 0) * 60;
+        
+        let currentTime = new Date(`2026/01/01 ${startTimeStr}:00`);
+        const tbody = document.getElementById('timetableBody');
+        tbody.innerHTML = '';
+
+        let lastMembers = [];
+        let remainingUnits = [...units];
+
+        while (remainingUnits.length > 0) {
+            // 連続出演がないユニットを探す
+            let nextIndex = remainingUnits.findIndex(u => !u.members.some(m => lastMembers.includes(m)));
+
+            // 見つからない場合は休憩を挟む
+            if (nextIndex === -1) {
+                const restStart = formatTime(currentTime);
+                currentTime = new Date(currentTime.getTime() + restSec * 1000);
+                tbody.innerHTML += `<tr class="rest-row"><td>${restStart} - ${formatTime(currentTime)}</td><td>【休憩】着替え・連続回避</td><td>-</td><td>${restSec/60}分</td></tr>`;
+                lastMembers = []; // 休憩後は誰でも出られる
+                continue;
+            }
+
+            const unit = remainingUnits.splice(nextIndex, 1)[0];
+            const startStr = formatTime(currentTime);
+            
+            tbody.innerHTML += `<tr><td>${startStr}</td><td><strong>${unit.name}</strong></td><td>${unit.members.join(', ')}</td><td>${Math.floor(unit.duration/60)}分${unit.duration%60}秒</td></tr>`;
+            
+            currentTime = new Date(currentTime.getTime() + unit.duration * 1000);
+            
+            // 転換
+            if (remainingUnits.length > 0) {
+                const transStart = formatTime(currentTime);
+                currentTime = new Date(currentTime.getTime() + transition * 1000);
+                tbody.innerHTML += `<tr class="rest-row"><td>${transStart}</td><td>（転換）</td><td>-</td><td>${transition}秒</td></tr>`;
+            }
+
+            lastMembers = unit.members;
+        }
+
+        document.getElementById('resultArea').style.display = 'block';
+    });
+
+    function formatTime(date) {
+        return date.toTimeString().split(' ')[0];
+    }
+</script>
+
 </body>
 </html>
