@@ -2,75 +2,17 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>テスト</title>
+<title>タイムテーブル</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h2>人を登録</h2>
-<input id="name">
-<button onclick="add()">追加</button>
+<input id="name" placeholder="名前">
+<button onclick="addPerson()">追加</button>
 
 <div id="list"></div>
 
-<script>
-let db;
-
-// DB作成
-let req = indexedDB.open("testDB", 1);
-
-req.onupgradeneeded = e => {
-  db = e.target.result;
-  db.createObjectStore("people", { keyPath: "id", autoIncrement: true });
-};
-
-req.onsuccess = e => {
-  db = e.target.result;
-  load();
-};
-
-// 追加
-function add(){
-  let name = document.getElementById("name").value;
-  if(!name) return;
-
-  let tx = db.transaction("people", "readwrite");
-  tx.objectStore("people").add({name});
-
-  tx.oncomplete = load;
-}
-
-// 表示
-function load(){
-  let tx = db.transaction("people", "readonly");
-  let store = tx.objectStore("people");
-
-  let html = "";
-
-  store.openCursor().onsuccess = e => {
-    let cursor = e.target.result;
-
-    if(cursor){
-      html += `
-        <div>
-          ${cursor.value.name}
-          <button onclick="del(${cursor.value.id})">削除</button>
-        </div>
-      `;
-      cursor.continue();
-    } else {
-      document.getElementById("list").innerHTML = html;
-    }
-  };
-}
-
-// 削除
-function del(id){
-  let tx = db.transaction("people", "readwrite");
-  tx.objectStore("people").delete(id);
-
-  tx.oncomplete = load;
-}
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
