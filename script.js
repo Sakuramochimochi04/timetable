@@ -1,3 +1,4 @@
+// メイン処理
 function createTable() {
   const input = document.getElementById("input").value.trim().split("\n");
   const startTime = document.getElementById("startTime").value;
@@ -10,7 +11,6 @@ function createTable() {
     return { name, unit, time: parseInt(time) };
   });
 
-  // 並び替え（同じ人連続しない）
   list = shuffleAvoidSame(list);
 
   let current = timeToMinutes(startTime);
@@ -52,15 +52,50 @@ function shuffleAvoidSame(list) {
   return shuffled;
 }
 
-// 時間→分
+// 時間 → 分
 function timeToMinutes(time) {
   let [h, m] = time.split(":").map(Number);
   return h * 60 + m;
 }
 
-// 分→時間
+// 分 → 時間
 function minutesToTime(min) {
   let h = Math.floor(min / 60);
   let m = min % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
+
+// 保存
+function saveData() {
+  const data = {
+    input: document.getElementById("input").value,
+    startTime: document.getElementById("startTime").value,
+    changeTime: document.getElementById("changeTime").value,
+    breakInterval: document.getElementById("breakInterval").value,
+    breakTime: document.getElementById("breakTime").value
+  };
+
+  localStorage.setItem("timetableData", JSON.stringify(data));
+  alert("保存した！");
+}
+
+// 読み込み
+function loadData() {
+  const data = JSON.parse(localStorage.getItem("timetableData"));
+
+  if (!data) {
+    alert("保存データなし");
+    return;
+  }
+
+  document.getElementById("input").value = data.input;
+  document.getElementById("startTime").value = data.startTime;
+  document.getElementById("changeTime").value = data.changeTime;
+  document.getElementById("breakInterval").value = data.breakInterval;
+  document.getElementById("breakTime").value = data.breakTime;
+}
+
+// ページ開いたら自動復元
+window.onload = function() {
+  loadData();
+};
