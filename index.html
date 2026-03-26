@@ -2,90 +2,96 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Dance Event Timetable</title>
+    <title>Dance Event Timetable Pro</title>
     <style>
-        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif; padding: 20px; background: #f4f7f9; color: #333; }
-        .box { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #1a73e8; margin-bottom: 30px; }
-        section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        .no-print { display: block; } /* 編集用要素 */
+        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --gray: #5f6368; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; padding: 20px; background: #f8f9fa; color: #333; }
+        .box { max-width: 850px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 30px; font-weight: 800; }
+        section { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
         
-        /* 入力まわり */
-        input, button { padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd; font-size: 14px; }
-        .btn-blue { background: #1a73e8; color: white; border: none; cursor: pointer; padding: 10px 20px; }
-        .btn-green { background: #34a853; color: white; border: none; width: 100%; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-red { background: #ea4335; color: white; border: none; cursor: pointer; font-size: 12px; float: right; }
-        .btn-finish { background: #5f6368; color: white; border: none; width: 100%; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        
-        /* リスト表示 */
-        .list-item { display: flex; justify-content: space-between; background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #1a73e8; }
-        .m-check-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 8px; }
+        /* メンバーリスト（1行に3人程度） */
+        .m-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .m-item { background: #fff; border: 1px solid #ddd; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
 
-        /* タイムテーブル表 */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; font-size: 15px; }
-        th, td { border: 1px solid #e0e0e0; padding: 15px 10px; text-align: left; }
-        th { background: #f1f3f4; color: #5f6368; font-weight: bold; }
+        /* おしゃれな出演者選択チップ */
+        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; }
+        .member-chip { cursor: pointer; padding: 8px 16px; border-radius: 20px; border: 2px solid #eee; background: white; transition: 0.3s; font-size: 0.85rem; user-select: none; }
+        .member-chip.selected { border-color: var(--primary); background: #e8f0fe; color: var(--primary); font-weight: bold; }
+
+        /* 入力フォーム */
+        input, button { padding: 12px; border-radius: 8px; border: 1px solid #ddd; outline: none; }
+        .input-main { width: 60%; margin-right: 10px; }
+        .btn-blue { background: var(--primary); color: white; border: none; cursor: pointer; font-weight: bold; }
+        .btn-green { background: var(--success); color: white; border: none; width: 100%; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-finish { background: var(--gray); color: white; border: none; width: 100%; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 30px; }
+        .btn-clear { background: var(--danger); color: white; border: none; padding: 5px 10px; font-size: 11px; float: right; cursor: pointer; border-radius: 4px; }
+
+        /* タイムテーブル */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 8px; overflow: hidden; }
+        th, td { border: 1px solid #eee; padding: 16px 12px; text-align: left; }
+        th { background: #f1f3f4; font-size: 0.85rem; color: #777; text-transform: uppercase; }
         .row-u { font-weight: bold; }
-        .row-r { background: #fff8e1; color: #f57c00; font-size: 0.9rem; }
-        .row-mc { background: #e0f2f1; color: #00796b; font-weight: bold; }
-        .row-t { color: #999; font-size: 0.8rem; }
+        .row-r { background: #fffdf2; color: #d97706; font-size: 0.85rem; }
+        .row-mc { background: #f0fdf4; color: #166534; font-weight: bold; }
+        .row-t { color: #aaa; font-size: 0.8rem; }
         
-        /* MC挿入ボタン */
-        .ins-mc-btn { display: block; width: 100%; padding: 5px; margin: 2px 0; background: none; border: 1px dashed #1a73e8; color: #1a73e8; cursor: pointer; font-size: 11px; border-radius: 4px; }
-        
-        /* 完成モード（表示切り替え） */
-        .final-mode .no-print { display: none !important; }
-        .final-mode .ins-mc-btn { display: none !important; }
-        .final-mode .box { border: 2px solid #333; }
-        #edit-back-btn { display: none; margin-bottom: 20px; background: #eee; color: #333; }
-        .final-mode #edit-back-btn { display: inline-block; }
+        /* 削除ボタン */
+        .del-text { color: var(--danger); cursor: pointer; font-weight: bold; margin-left: 10px; font-size: 0.8rem; }
+        .ins-mc-btn { display: block; width: 100%; padding: 4px; background: none; border: 1px dashed var(--primary); color: var(--primary); cursor: pointer; font-size: 10px; margin: 2px 0; border-radius: 4px; }
+
+        /* 清書モード */
+        .final-mode .no-print, .final-mode .ins-mc-btn, .final-mode .del-text { display: none !important; }
+        .final-mode .box { box-shadow: none; border: 2px solid #000; }
+        #back-btn { display: none; margin-bottom: 20px; background: #eee; border: none; cursor: pointer; padding: 10px; border-radius: 5px; }
+        .final-mode #back-btn { display: inline-block; }
     </style>
 </head>
-<body id="mainBody">
+<body id="b">
 
 <div class="box">
-    <button id="edit-back-btn" onclick="toggleMode(false)">← 編集に戻る</button>
-    <button class="btn-red no-print" onclick="if(confirm('全データを消去しますか？')){localStorage.clear();location.reload();}">全消去</button>
+    <button id="back-btn" onclick="toggleM(false)">← 編集に戻る</button>
+    <button class="btn-clear no-print" onclick="if(confirm('全データを消去？')){localStorage.clear();location.reload();}">全データ消去</button>
     
-    <h1>Event Timetable</h1>
+    <h1>Event Schedule</h1>
 
     <div class="no-print">
         <section>
             <h3>1. メンバー登録</h3>
-            <input type="text" id="mName" placeholder="名前を入力">
+            <input type="text" id="mIn" class="input-main" placeholder="名前を入力">
             <button class="btn-blue" onclick="addM()">追加</button>
-            <div id="mShow"></div>
+            <div id="mGrid" class="m-grid"></div>
         </section>
 
         <section>
             <h3>2. ユニット登録</h3>
-            <input type="text" id="uName" placeholder="ユニット名" style="width: 70%;"><br>
-            時間: <input type="number" id="uMin" value="3" style="width: 50px;"> 分 
-            <input type="number" id="uSec" value="0" style="width: 50px;"> 秒<br>
-            <p style="font-size: 0.8rem; margin-bottom: 5px;">出演者を選択：</p>
-            <div id="mCheck" class="m-check-group"></div>
+            <input type="text" id="uIn" placeholder="ユニット名" style="width: 95%;"><br>
+            <div style="margin: 10px 0;">
+                出演時間: <input type="number" id="uMin" value="3" style="width: 50px;"> 分 
+                <input type="number" id="uSec" value="0" style="width: 50px;"> 秒
+            </div>
+            <p style="font-size: 0.8rem; color: #666;">出演者を選択（クリックで選択）：</p>
+            <div id="chipContainer" class="chip-container"></div>
             <button class="btn-blue" onclick="addU()">ユニットを登録</button>
-            <div id="uShow"></div>
+            <div id="uList" style="margin-top:15px;"></div>
         </section>
 
         <section>
-            <h3>3. 設定</h3>
-            開始: <input type="time" id="startTime" value="13:00"> 
-            転換: <input type="number" id="tTime" value="60" style="width: 50px;"> 秒 
-            休憩: <input type="number" id="rTime" value="5" style="width: 50px;"> 分<br>
-            <button class="btn-green" onclick="makeTT()">タイムテーブルを仮生成</button>
+            <h3>3. 全体設定</h3>
+            開始: <input type="time" id="sT" value="13:00"> 
+            転換: <input type="number" id="tT" value="60" style="width: 50px;"> 秒 
+            休憩: <input type="number" id="rT" value="5" style="width: 50px;"> 分
+            <button class="btn-green" onclick="make()">タイムテーブルを生成</button>
         </section>
     </div>
 
     <div id="res" style="display:none;">
-        <h2 id="tt-title">タイムテーブル</h2>
+        <h2 style="text-align:center;">TIME TABLE</h2>
         <table>
-            <thead>
-                <tr><th>時刻</th><th>内容</th><th>出演メンバー</th><th>時間</th></tr>
-            </thead>
+            <thead><tr><th>時刻</th><th>内容</th><th>出演者</th><th>時間</th></tr></thead>
             <tbody id="tBody"></tbody>
         </table>
-        <button class="btn-finish no-print" onclick="toggleMode(true)">完成（清書モードへ）</button>
+        <button class="btn-finish no-print" onclick="toggleM(true)">完成（清書モードへ）</button>
     </div>
 </div>
 
@@ -94,34 +100,39 @@
     let members = load('dm'), units = load('du'), tt = [];
 
     function refresh() {
-        const ms = document.getElementById('mShow'), mc = document.getElementById('mCheck'), us = document.getElementById('uShow');
-        ms.innerHTML = ''; mc.innerHTML = ''; us.innerHTML = '';
+        const mg = document.getElementById('mGrid'), cc = document.getElementById('chipContainer'), ul = document.getElementById('uList');
+        mg.innerHTML = ''; cc.innerHTML = ''; ul.innerHTML = '';
+        
         members.forEach((m, i) => {
-            ms.innerHTML += `<div class="list-item">${m} <span onclick="delM(${i})" style="color:red;cursor:pointer;">×</span></div>`;
-            mc.innerHTML += `<label><input type="checkbox" name="sm" value="${m}"> ${m}</label>`;
+            mg.innerHTML += `<div class="m-item"><span>${m}</span><span class="del-text" onclick="delM(${i})">×</span></div>`;
+            cc.innerHTML += `<div class="member-chip" onclick="this.classList.toggle('selected')">${m}</div>`;
         });
         units.forEach((u, i) => {
-            us.innerHTML += `<div class="list-item"><b>${u.n}</b> (${u.d}s) <span onclick="delU(${i})" style="color:red;cursor:pointer;">×</span></div>`;
+            ul.innerHTML += `<div class="list-item" style="background:#fff; border:1px solid #eee; margin-bottom:5px; padding:8px; border-radius:5px;">
+                <span><b>${u.n}</b> (${u.d}s)</span><span class="del-text" onclick="delU(${i})">削除</span></div>`;
         });
         localStorage.setItem('dm', JSON.stringify(members));
         localStorage.setItem('du', JSON.stringify(units));
     }
 
-    function addM(){ const i = document.getElementById('mName'); if(i.value.trim()){ members.push(i.value.trim()); i.value=''; refresh(); } }
+    function addM(){ const i = document.getElementById('mIn'); if(i.value.trim()){ members.push(i.value.trim()); i.value=''; refresh(); } }
+    
     function addU(){
-        const n = document.getElementById('uName').value.trim();
+        const n = document.getElementById('uIn').value.trim();
         const d = (parseInt(document.getElementById('uMin').value)||0)*60 + (parseInt(document.getElementById('uSec').value)||0);
-        const s = Array.from(document.querySelectorAll('input[name="sm"]:checked')).map(e => e.value);
-        if(!n || d<=0 || s.length===0){ alert("名前・時間・メンバーを入力してください"); return; }
+        const s = Array.from(document.querySelectorAll('.member-chip.selected')).map(el => el.innerText);
+        if(!n || d<=0 || s.length===0){ alert("詳細を入力してください"); return; }
         units.push({ n: n, d: d, m: s });
-        document.getElementById('uName').value=''; refresh();
+        document.getElementById('uIn').value=''; refresh();
     }
+
     function delM(i){ members.splice(i,1); refresh(); }
     function delU(i){ units.splice(i,1); refresh(); }
+    function delMC(i){ tt.splice(i,1); draw(); }
 
-    function makeTT() {
+    function make() {
         if(units.length === 0) return;
-        const trans = parseInt(document.getElementById('tTime').value)||0, rest = (parseInt(document.getElementById('rTime').value)||0)*60;
+        const trans = parseInt(document.getElementById('tT').value)||0, rest = (parseInt(document.getElementById('rT').value)||0)*60;
         tt = []; let last = [], rem = [...units];
         while(rem.length > 0) {
             let idx = rem.findIndex(u => !u.m.some(m => last.includes(m)));
@@ -134,37 +145,35 @@
             if(rem.length > 0) tt.push({ type: 't', n: '(転換)', d: trans, m: '-' });
             last = target.m;
         }
-        showTT();
+        draw();
     }
 
-    function showTT() {
-        let cur = new Date(`2026/01/01 ${document.getElementById('startTime').value}`);
+    function draw() {
+        let cur = new Date(`2026/01/01 ${document.getElementById('sT').value}`);
         const body = document.getElementById('tBody'); body.innerHTML = '';
-        tt.forEach((item, i) => {
-            const cls = item.type==='r'?'row-r':item.type==='mc'?'row-mc':item.type==='t'?'row-t':'row-u';
+        tt.forEach((d, i) => {
+            const cls = d.type==='r'?'row-r':d.type==='mc'?'row-mc':d.type==='t'?'row-t':'row-u';
+            const delBtn = d.type==='mc' ? `<span class="del-text" onclick="delMC(${i})">[削除]</span>` : '';
             body.innerHTML += `<tr class="${cls}">
                 <td>${cur.toTimeString().split(' ')[0]}</td>
-                <td>${item.n}</td><td>${item.m}</td>
-                <td>${Math.floor(item.d/60)}分${item.d%60}秒</td>
+                <td>${d.n} ${delBtn}</td><td>${d.m}</td>
+                <td>${Math.floor(d.d/60)}分${d.d%60}秒</td>
             </tr>`;
             if(i < tt.length - 1) {
                 body.innerHTML += `<tr class="no-print"><td colspan="4" style="border:none;padding:0;"><button class="ins-mc-btn" onclick="insMC(${i})">+ ここにMCを挿入</button></td></tr>`;
             }
-            cur = new Date(cur.getTime() + item.d * 1000);
+            cur = new Date(cur.getTime() + d.d * 1000);
         });
         document.getElementById('res').style.display = 'block';
     }
 
-    function insMC(i){ const m = prompt("MC時間(分)", "5"); if(m){ tt.splice(i+1,0,{type:'mc',n:'【MC】',d:parseInt(m)*60,m:'-'}); showTT(); } }
+    function insMC(i){ const m = prompt("MC時間(分)", "5"); if(m){ tt.splice(i+1,0,{type:'mc',n:'【MC】',d:parseInt(m)*60,m:'-'}); draw(); } }
 
-    function toggleMode(isFinal) {
-        const body = document.getElementById('mainBody');
-        if(isFinal) {
-            body.classList.add('final-mode');
-            window.scrollTo(0,0);
-        } else {
-            body.classList.remove('final-mode');
-        }
+    function toggleM(f) {
+        const b = document.getElementById('b');
+        if(f) b.classList.add('final-mode');
+        else b.classList.remove('final-mode');
+        window.scrollTo(0,0);
     }
 
     refresh();
