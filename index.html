@@ -8,20 +8,31 @@
 <body>
 
 <h2>① 人を登録</h2>
-<input id="personName" placeholder="名前入力">
+<input id="personName">
 <button onclick="addPerson()">追加</button>
 <div id="personList"></div>
 
 <h2>② ユニット作成</h2>
 <input id="unitName" placeholder="ユニット名">
-<input id="unitTime" type="number" placeholder="秒">
+
+時間：
+<input id="unitMin" type="number" placeholder="分">
+<input id="unitSec" type="number" placeholder="秒">
+
 <div id="selectPersons"></div>
 <button onclick="addUnit()">ユニット追加</button>
 <div id="unitList"></div>
 
 <h2>③ 設定</h2>
 開始時間 <input type="time" step="1" id="startTime" value="13:00:00"><br>
-転換時間（秒） <input type="number" id="changeTime" value="30"><br>
+
+転換：
+<input id="changeMin" type="number" value="0">分
+<input id="changeSec" type="number" value="30">秒<br>
+
+休憩：
+<input id="breakMin" type="number" value="10">分
+<input id="breakInterval" type="number" value="3">組ごと<br>
 
 <button onclick="generate()">生成</button>
 
