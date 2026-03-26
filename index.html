@@ -2,199 +2,172 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ダンスタイムテーブル作成</title>
+    <title>Dance Event Timetable</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
-        .box { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; border: 1px solid #ddd; }
-        section { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
-        input, button { padding: 10px; margin: 5px 0; border-radius: 5px; border: 1px solid #ccc; }
-        .btn-blue { background: #007bff; color: white; border: none; cursor: pointer; }
-        .btn-green { background: #28a745; color: white; border: none; width: 100%; font-size: 1.2rem; cursor: pointer; }
-        .btn-red { background: #dc3545; color: white; border: none; cursor: pointer; font-size: 0.8rem; float: right; }
-        .list-item { display: flex; justify-content: space-between; background: #f1f1f1; padding: 8px; margin: 5px 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 10px; text-align: left; }
-        .bg-rest { background: #fff3cd; }
-        .bg-mc { background: #d1ecf1; }
-        .ins-mc { display: block; margin: 5px auto; font-size: 0.8rem; color: #007bff; cursor: pointer; background: white; border: 1px dashed #007bff; width: 100%; }
+        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif; padding: 20px; background: #f4f7f9; color: #333; }
+        .box { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #1a73e8; margin-bottom: 30px; }
+        section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .no-print { display: block; } /* 編集用要素 */
+        
+        /* 入力まわり */
+        input, button { padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd; font-size: 14px; }
+        .btn-blue { background: #1a73e8; color: white; border: none; cursor: pointer; padding: 10px 20px; }
+        .btn-green { background: #34a853; color: white; border: none; width: 100%; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-red { background: #ea4335; color: white; border: none; cursor: pointer; font-size: 12px; float: right; }
+        .btn-finish { background: #5f6368; color: white; border: none; width: 100%; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        
+        /* リスト表示 */
+        .list-item { display: flex; justify-content: space-between; background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 4px solid #1a73e8; }
+        .m-check-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 8px; }
+
+        /* タイムテーブル表 */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; font-size: 15px; }
+        th, td { border: 1px solid #e0e0e0; padding: 15px 10px; text-align: left; }
+        th { background: #f1f3f4; color: #5f6368; font-weight: bold; }
+        .row-u { font-weight: bold; }
+        .row-r { background: #fff8e1; color: #f57c00; font-size: 0.9rem; }
+        .row-mc { background: #e0f2f1; color: #00796b; font-weight: bold; }
+        .row-t { color: #999; font-size: 0.8rem; }
+        
+        /* MC挿入ボタン */
+        .ins-mc-btn { display: block; width: 100%; padding: 5px; margin: 2px 0; background: none; border: 1px dashed #1a73e8; color: #1a73e8; cursor: pointer; font-size: 11px; border-radius: 4px; }
+        
+        /* 完成モード（表示切り替え） */
+        .final-mode .no-print { display: none !important; }
+        .final-mode .ins-mc-btn { display: none !important; }
+        .final-mode .box { border: 2px solid #333; }
+        #edit-back-btn { display: none; margin-bottom: 20px; background: #eee; color: #333; }
+        .final-mode #edit-back-btn { display: inline-block; }
     </style>
 </head>
-<body>
+<body id="mainBody">
 
 <div class="box">
-    <button class="btn-red" onclick="localStorage.clear(); location.reload();">全データ初期化</button>
-    <h1>TT作成ツール</h1>
+    <button id="edit-back-btn" onclick="toggleMode(false)">← 編集に戻る</button>
+    <button class="btn-red no-print" onclick="if(confirm('全データを消去しますか？')){localStorage.clear();location.reload();}">全消去</button>
+    
+    <h1>Event Timetable</h1>
 
-    <section>
-        <h3>1. メンバー登録</h3>
-        <input type="text" id="mName" placeholder="名前を入力">
-        <button class="btn-blue" onclick="addM()">追加</button>
-        <div id="mShow"></div>
-    </section>
+    <div class="no-print">
+        <section>
+            <h3>1. メンバー登録</h3>
+            <input type="text" id="mName" placeholder="名前を入力">
+            <button class="btn-blue" onclick="addM()">追加</button>
+            <div id="mShow"></div>
+        </section>
 
-    <section>
-        <h3>2. ユニット登録</h3>
-        <input type="text" id="uName" placeholder="ユニット名" style="width: 80%;"><br>
-        時間: <input type="number" id="uMin" value="3" style="width: 50px;"> 分 
-        <input type="number" id="uSec" value="0" style="width: 50px;"> 秒<br>
-        出演者を選択:<br>
-        <div id="mCheck" style="padding: 10px; background: #fafafa; border: 1px solid #eee; margin: 5px 0;"></div>
-        <button class="btn-blue" onclick="addU()">ユニットを登録</button>
-        <div id="uShow"></div>
-    </section>
+        <section>
+            <h3>2. ユニット登録</h3>
+            <input type="text" id="uName" placeholder="ユニット名" style="width: 70%;"><br>
+            時間: <input type="number" id="uMin" value="3" style="width: 50px;"> 分 
+            <input type="number" id="uSec" value="0" style="width: 50px;"> 秒<br>
+            <p style="font-size: 0.8rem; margin-bottom: 5px;">出演者を選択：</p>
+            <div id="mCheck" class="m-check-group"></div>
+            <button class="btn-blue" onclick="addU()">ユニットを登録</button>
+            <div id="uShow"></div>
+        </section>
 
-    <section>
-        <h3>3. 全体設定</h3>
-        開始: <input type="time" id="startTime" value="13:00"><br>
-        転換: <input type="number" id="tTime" value="60" style="width: 50px;"> 秒
-        回避休憩: <input type="number" id="rTime" value="5" style="width: 50px;"> 分<br>
-        <button class="btn-green" onclick="makeTT()">タイムテーブル生成！</button>
-    </section>
+        <section>
+            <h3>3. 設定</h3>
+            開始: <input type="time" id="startTime" value="13:00"> 
+            転換: <input type="number" id="tTime" value="60" style="width: 50px;"> 秒 
+            休憩: <input type="number" id="rTime" value="5" style="width: 50px;"> 分<br>
+            <button class="btn-green" onclick="makeTT()">タイムテーブルを仮生成</button>
+        </section>
+    </div>
 
     <div id="res" style="display:none;">
-        <hr>
-        <h2>完成タイムテーブル</h2>
+        <h2 id="tt-title">タイムテーブル</h2>
         <table>
             <thead>
-                <tr><th>時刻</th><th>内容</th><th>メンバー</th><th>時間</th></tr>
+                <tr><th>時刻</th><th>内容</th><th>出演メンバー</th><th>時間</th></tr>
             </thead>
             <tbody id="tBody"></tbody>
         </table>
+        <button class="btn-finish no-print" onclick="toggleMode(true)">完成（清書モードへ）</button>
     </div>
 </div>
 
 <script>
-    // 安全にデータを読み込む関数
-    function loadData(key) {
-        try {
-            const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : [];
-        } catch (e) {
-            return [];
-        }
-    }
+    function load(k){ try{ return JSON.parse(localStorage.getItem(k)) || []; }catch(e){ return []; } }
+    let members = load('dm'), units = load('du'), tt = [];
 
-    let members = loadData('dance_m');
-    let units = loadData('dance_u');
-    let tt = [];
-
-    // 画面を更新する
     function refresh() {
-        // メンバー表示
-        const mShow = document.getElementById('mShow');
-        const mCheck = document.getElementById('mCheck');
-        mShow.innerHTML = '';
-        mCheck.innerHTML = '';
+        const ms = document.getElementById('mShow'), mc = document.getElementById('mCheck'), us = document.getElementById('uShow');
+        ms.innerHTML = ''; mc.innerHTML = ''; us.innerHTML = '';
         members.forEach((m, i) => {
-            mShow.innerHTML += `<div class="list-item">${m} <button onclick="delM(${i})" style="color:red; border:none; background:none; cursor:pointer;">×削除</button></div>`;
-            mCheck.innerHTML += `<label style="margin-right:10px;"><input type="checkbox" name="selM" value="${m}"> ${m}</label>`;
+            ms.innerHTML += `<div class="list-item">${m} <span onclick="delM(${i})" style="color:red;cursor:pointer;">×</span></div>`;
+            mc.innerHTML += `<label><input type="checkbox" name="sm" value="${m}"> ${m}</label>`;
         });
-
-        // ユニット表示
-        const uShow = document.getElementById('uShow');
-        uShow.innerHTML = '';
         units.forEach((u, i) => {
-            uShow.innerHTML += `<div class="list-item"><b>${u.n}</b> (${u.d}秒) <button onclick="delU(${i})" style="color:red; border:none; background:none; cursor:pointer;">×削除</button></div>`;
+            us.innerHTML += `<div class="list-item"><b>${u.n}</b> (${u.d}s) <span onclick="delU(${i})" style="color:red;cursor:pointer;">×</span></div>`;
         });
-
-        // 保存
-        localStorage.setItem('dance_m', JSON.stringify(members));
-        localStorage.setItem('dance_u', JSON.stringify(units));
+        localStorage.setItem('dm', JSON.stringify(members));
+        localStorage.setItem('du', JSON.stringify(units));
     }
 
-    // メンバー追加
-    function addM() {
-        const input = document.getElementById('mName');
-        if (input.value.trim()) {
-            members.push(input.value.trim());
-            input.value = '';
-            refresh();
-        }
+    function addM(){ const i = document.getElementById('mName'); if(i.value.trim()){ members.push(i.value.trim()); i.value=''; refresh(); } }
+    function addU(){
+        const n = document.getElementById('uName').value.trim();
+        const d = (parseInt(document.getElementById('uMin').value)||0)*60 + (parseInt(document.getElementById('uSec').value)||0);
+        const s = Array.from(document.querySelectorAll('input[name="sm"]:checked')).map(e => e.value);
+        if(!n || d<=0 || s.length===0){ alert("名前・時間・メンバーを入力してください"); return; }
+        units.push({ n: n, d: d, m: s });
+        document.getElementById('uName').value=''; refresh();
     }
+    function delM(i){ members.splice(i,1); refresh(); }
+    function delU(i){ units.splice(i,1); refresh(); }
 
-    // ユニット追加
-    function addU() {
-        const name = document.getElementById('uName').value.trim();
-        const min = parseInt(document.getElementById('uMin').value) || 0;
-        const sec = parseInt(document.getElementById('uSec').value) || 0;
-        const dur = (min * 60) + sec;
-        const selected = Array.from(document.querySelectorAll('input[name="selM"]:checked')).map(el => el.value);
-
-        if (!name || dur <= 0 || selected.length === 0) {
-            alert("入力が正しくありません（名前・時間・メンバー必須）");
-            return;
-        }
-        units.push({ n: name, d: dur, m: selected });
-        document.getElementById('uName').value = '';
-        refresh();
-    }
-
-    function delM(i) { members.splice(i, 1); refresh(); }
-    function delU(i) { units.splice(i, 1); refresh(); }
-
-    // TT生成
     function makeTT() {
-        if (units.length === 0) { alert("ユニットを登録してください"); return; }
-        
-        const trans = parseInt(document.getElementById('tTime').value) || 0;
-        const rest = (parseInt(document.getElementById('rTime').value) || 0) * 60;
-        
-        tt = [];
-        let lastM = [];
-        let remain = [...units];
-
-        while (remain.length > 0) {
-            let idx = remain.findIndex(u => !u.m.some(m => lastM.includes(m)));
-            
-            if (idx === -1) {
-                // 休憩を入れる（直前が転換なら消す）
-                if (tt.length > 0 && tt[tt.length-1].type === 't') tt.pop();
-                tt.push({ type: 'r', n: '【休憩】', d: rest, m: '-' });
-                lastM = [];
-                continue;
+        if(units.length === 0) return;
+        const trans = parseInt(document.getElementById('tTime').value)||0, rest = (parseInt(document.getElementById('rTime').value)||0)*60;
+        tt = []; let last = [], rem = [...units];
+        while(rem.length > 0) {
+            let idx = rem.findIndex(u => !u.m.some(m => last.includes(m)));
+            if(idx === -1) {
+                if(tt.length>0 && tt[tt.length-1].type==='t') tt.pop();
+                tt.push({ type: 'r', n: '【休憩】', d: rest, m: '-' }); last = []; continue;
             }
-
-            const target = remain.splice(idx, 1)[0];
+            const target = rem.splice(idx,1)[0];
             tt.push({ type: 'u', n: target.n, d: target.d, m: target.m.join(', ') });
-            if (remain.length > 0) tt.push({ type: 't', n: '(転換)', d: trans, m: '-' });
-            lastM = target.m;
+            if(rem.length > 0) tt.push({ type: 't', n: '(転換)', d: trans, m: '-' });
+            last = target.m;
         }
         showTT();
     }
 
     function showTT() {
         let cur = new Date(`2026/01/01 ${document.getElementById('startTime').value}`);
-        const body = document.getElementById('tBody');
-        body.innerHTML = '';
-
+        const body = document.getElementById('tBody'); body.innerHTML = '';
         tt.forEach((item, i) => {
-            const row = `<tr class="${item.type==='r'?'bg-rest':item.type==='mc'?'bg-mc':''}">
+            const cls = item.type==='r'?'row-r':item.type==='mc'?'row-mc':item.type==='t'?'row-t':'row-u';
+            body.innerHTML += `<tr class="${cls}">
                 <td>${cur.toTimeString().split(' ')[0]}</td>
                 <td>${item.n}</td><td>${item.m}</td>
                 <td>${Math.floor(item.d/60)}分${item.d%60}秒</td>
             </tr>`;
-            body.innerHTML += row;
-            
-            // MCボタン
-            if (i < tt.length - 1) {
-                body.innerHTML += `<tr><td colspan="4" style="border:none; padding:0;"><button class="ins-mc" onclick="insMC(${i})">+ ここにMCを挿入</button></td></tr>`;
+            if(i < tt.length - 1) {
+                body.innerHTML += `<tr class="no-print"><td colspan="4" style="border:none;padding:0;"><button class="ins-mc-btn" onclick="insMC(${i})">+ ここにMCを挿入</button></td></tr>`;
             }
             cur = new Date(cur.getTime() + item.d * 1000);
         });
         document.getElementById('res').style.display = 'block';
     }
 
-    function insMC(i) {
-        const m = prompt("MCの時間（分）", "5");
-        if (m) {
-            tt.splice(i + 1, 0, { type: 'mc', n: '【MC】', d: parseInt(m) * 60, m: '-' });
-            showTT();
+    function insMC(i){ const m = prompt("MC時間(分)", "5"); if(m){ tt.splice(i+1,0,{type:'mc',n:'【MC】',d:parseInt(m)*60,m:'-'}); showTT(); } }
+
+    function toggleMode(isFinal) {
+        const body = document.getElementById('mainBody');
+        if(isFinal) {
+            body.classList.add('final-mode');
+            window.scrollTo(0,0);
+        } else {
+            body.classList.remove('final-mode');
         }
     }
 
-    // 最初に一度画面を更新
     refresh();
-    alert("JavaScriptは動いています！");
 </script>
 
 </body>
