@@ -54,40 +54,43 @@ function toTime(s){
 
 // ===== 生成 =====
 function generate(){
-  let order=smartSchedule(units);
+  let order = smartSchedule(units);
 
-  let time=toSec(document.getElementById("startTime").value);
+  let time = toSec(document.getElementById("startTime").value);
 
-  let changeMin=parseInt(document.getElementById("changeMin").value)||0;
-  let changeSec=parseInt(document.getElementById("changeSec").value)||0;
-  let change=changeMin*60+changeSec;
+  let changeMin = parseInt(document.getElementById("changeMin").value) || 0;
+  let changeSec = parseInt(document.getElementById("changeSec").value) || 0;
+  let change = changeMin * 60 + changeSec;
 
-  let breakMin=parseInt(document.getElementById("breakMin").value)||0;
-  let breakTime=breakMin*60;
+  let breakMin = parseInt(document.getElementById("breakMin").value) || 0;
+  let breakTime = breakMin * 60;
 
-  let breakInterval=parseInt(document.getElementById("breakInterval").value)||0;
+  let breakInterval = parseInt(document.getElementById("breakInterval").value) || 0;
 
-  let html="";
+  let html = "";
 
   order.forEach((u,index)=>{
-    // ユニット表示
-    html+=`${toTime(time)} - ${u.name}（${Math.floor(u.time/60)}分${u.time%60}秒）<br>`;
-    time+=u.time;
 
-    // 転換表示
-    if(change>0){
-      html+=`　↳ 転換（${changeMin}分${changeSec}秒）<br>`;
-      time+=change;
+    // 👇 メンバー表示追加
+    let membersText = u.members.length > 0 ? `（${u.members.join(", ")}）` : "";
+
+    html += `${toTime(time)} - ${u.name} ${membersText}（${Math.floor(u.time/60)}分${u.time%60}秒）<br>`;
+    time += u.time;
+
+    // 転換
+    if(change > 0){
+      html += `　↳ 転換（${changeMin}分${changeSec}秒）<br>`;
+      time += change;
     }
 
     // 休憩
-    if(breakInterval>0 && (index+1)%breakInterval===0 && index!==order.length-1){
-      html+=`★休憩（${breakMin}分）<br>`;
-      time+=breakTime;
+    if(breakInterval > 0 && (index+1)%breakInterval === 0 && index !== order.length-1){
+      html += `★休憩（${breakMin}分）<br>`;
+      time += breakTime;
     }
   });
 
-  html+=`<br>終了：${toTime(time)}`;
+  html += `<br>終了：${toTime(time)}`;
 
-  document.getElementById("result").innerHTML=html;
+  document.getElementById("result").innerHTML = html;
 }
