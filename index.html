@@ -160,3 +160,42 @@
             lastM = target.m;
         }
         showTT();
+    }
+
+    function showTT() {
+        let cur = new Date(`2026/01/01 ${document.getElementById('startTime').value}`);
+        const body = document.getElementById('tBody');
+        body.innerHTML = '';
+
+        tt.forEach((item, i) => {
+            const row = `<tr class="${item.type==='r'?'bg-rest':item.type==='mc'?'bg-mc':''}">
+                <td>${cur.toTimeString().split(' ')[0]}</td>
+                <td>${item.n}</td><td>${item.m}</td>
+                <td>${Math.floor(item.d/60)}分${item.d%60}秒</td>
+            </tr>`;
+            body.innerHTML += row;
+            
+            // MCボタン
+            if (i < tt.length - 1) {
+                body.innerHTML += `<tr><td colspan="4" style="border:none; padding:0;"><button class="ins-mc" onclick="insMC(${i})">+ ここにMCを挿入</button></td></tr>`;
+            }
+            cur = new Date(cur.getTime() + item.d * 1000);
+        });
+        document.getElementById('res').style.display = 'block';
+    }
+
+    function insMC(i) {
+        const m = prompt("MCの時間（分）", "5");
+        if (m) {
+            tt.splice(i + 1, 0, { type: 'mc', n: '【MC】', d: parseInt(m) * 60, m: '-' });
+            showTT();
+        }
+    }
+
+    // 最初に一度画面を更新
+    refresh();
+    alert("JavaScriptは動いています！");
+</script>
+
+</body>
+</html>
