@@ -1,18 +1,63 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>タイムテーブル</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ダンスイベント タイムテーブル作成</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="container">
+        <h1>タイムテーブル作成ツール</h1>
 
-<h2>人を登録</h2>
-<input id="name" placeholder="名前">
-<button onclick="addPerson()">追加</button>
+        <section>
+            <h2>1. メンバー登録</h2>
+            <div class="input-group">
+                <input type="text" id="memberInput" placeholder="メンバー名">
+                <button onclick="addMember()">追加</button>
+            </div>
+            <ul id="memberList" class="chip-list"></ul>
+        </section>
 
-<div id="list"></div>
+        <section>
+            <h2>2. ユニット登録</h2>
+            <div class="input-card">
+                <input type="text" id="unitName" placeholder="ユニット名">
+                <div class="time-input">
+                    <input type="number" id="unitMin" placeholder="分" min="0">
+                    <input type="number" id="unitSec" placeholder="秒" min="0" max="59">
+                </div>
+                <div id="unitMemberCheckboxes" class="checkbox-list">
+                    </div>
+                <button onclick="addUnit()">ユニットを追加</button>
+            </div>
+            <ul id="unitList"></ul>
+        </section>
 
-<script src="script.js"></script>
+        <section>
+            <h2>3. スケジュール設定</h2>
+            <div class="settings">
+                <label>開始時刻: <input type="time" id="startTime" value="13:00"></label>
+                <label>転換時間（秒）: <input type="number" id="transitionSec" value="60"></label>
+                <label>最低休憩（分）: <input type="number" id="minRestMin" value="5" title="連続出演回避用"></label>
+            </div>
+            <button class="generate-btn" onclick="generateTimetable()">タイムテーブル生成</button>
+        </section>
+
+        <section id="resultArea" style="display:none;">
+            <h2>完成タイムテーブル</h2>
+            <table id="timetable">
+                <thead>
+                    <tr>
+                        <th>時刻</th>
+                        <th>内容</th>
+                        <th>出演者</th>
+                    </tr>
+                </thead>
+                <tbody id="timetableBody"></tbody>
+            </table>
+        </section>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
