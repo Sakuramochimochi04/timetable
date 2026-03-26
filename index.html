@@ -3,160 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <title>タイムテーブル生成</title>
-<style>
-body { font-family: sans-serif; padding: 20px; }
-.tag { display:inline-block; background:#ddd; padding:5px 10px; margin:5px; cursor:pointer; }
-.selected { background:#4caf50; color:white; }
-.unit { border:1px solid #ccc; padding:10px; margin:10px 0; }
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <h2>① 人を登録</h2>
-<input id="personName">
+<input id="personName" placeholder="名前入力">
 <button onclick="addPerson()">追加</button>
 <div id="personList"></div>
 
 <h2>② ユニット作成</h2>
 <input id="unitName" placeholder="ユニット名">
-<input id="unitTime" type="number" placeholder="時間(分)">
+<input id="unitTime" type="number" placeholder="秒">
 <div id="selectPersons"></div>
 <button onclick="addUnit()">ユニット追加</button>
 <div id="unitList"></div>
 
 <h2>③ 設定</h2>
-開始時間 <input type="time" id="startTime" value="13:00"><br>
-転換時間 <input type="number" id="changeTime" value="5"><br>
-何組ごとに休憩 <input type="number" id="breakInterval" value="3"><br>
-休憩時間 <input type="number" id="breakTime" value="10"><br>
+開始時間 <input type="time" step="1" id="startTime" value="13:00:00"><br>
+転換時間（秒） <input type="number" id="changeTime" value="30"><br>
 
 <button onclick="generate()">生成</button>
 
 <h2>結果</h2>
 <div id="result"></div>
 
-<script>
-let persons = [];
-let units = [];
-let selected = [];
-
-// 人追加
-function addPerson(){
-  let name = document.getElementById("personName").value;
-  if(!name) return;
-  persons.push(name);
-  document.getElementById("personName").value = "";
-  renderPersons();
-}
-
-// 人表示
-function renderPersons(){
-  let html = "";
-  persons.forEach(p => {
-    html += `<span class="tag" onclick="toggleSelect('${p}')">${p}</span>`;
-  });
-  document.getElementById("personList").innerHTML = html;
-  document.getElementById("selectPersons").innerHTML = html;
-}
-
-// 選択
-function toggleSelect(name){
-  if(selected.includes(name)){
-    selected = selected.filter(n => n !== name);
-  } else {
-    selected.push(name);
-  }
-  renderSelected();
-}
-
-function renderSelected(){
-  let tags = document.querySelectorAll(".tag");
-  tags.forEach(tag => {
-    if(selected.includes(tag.innerText)){
-      tag.classList.add("selected");
-    } else {
-      tag.classList.remove("selected");
-    }
-  });
-}
-
-// ユニット追加
-function addUnit(){
-  let name = document.getElementById("unitName").value;
-  let time = parseInt(document.getElementById("unitTime").value);
-
-  units.push({ name, time, members:[...selected] });
-
-  selected = [];
-  renderSelected();
-  renderUnits();
-}
-
-// ユニット表示
-function renderUnits(){
-  let html = "";
-  units.forEach(u => {
-    html += `<div class="unit">${u.name} (${u.time}分) - ${u.members.join(", ")}</div>`;
-  });
-  document.getElementById("unitList").innerHTML = html;
-}
-
-// 並び替え
-function generate(){
-  let order = shuffle(units);
-
-  let start = toMin(document.getElementById("startTime").value);
-  let change = parseInt(document.getElementById("changeTime").value);
-  let breakInt = parseInt(document.getElementById("breakInterval").value);
-  let breakTime = parseInt(document.getElementById("breakTime").value);
-
-  let result = "";
-
-  for(let i=0;i<order.length;i++){
-    result += timeStr(start) + " - " + order[i].name + "<br>";
-    start += order[i].time + change;
-
-    if((i+1)%breakInt===0 && i!==order.length-1){
-      result += "----休憩----<br>";
-      start += breakTime;
-    }
-  }
-
-  document.getElementById("result").innerHTML = result;
-}
-
-// 同じ人回避
-function shuffle(arr){
-  let a = [...arr].sort(()=>Math.random()-0.5);
-
-  for(let i=0;i<a.length-1;i++){
-    if(hasSame(a[i], a[i+1])){
-      for(let j=i+2;j<a.length;j++){
-        if(!hasSame(a[i], a[j])){
-          [a[i+1],a[j]]=[a[j],a[i+1]];
-          break;
-        }
-      }
-    }
-  }
-  return a;
-}
-
-function hasSame(u1,u2){
-  return u1.members.some(m => u2.members.includes(m));
-}
-
-function toMin(t){
-  let [h,m]=t.split(":").map(Number);
-  return h*60+m;
-}
-
-function timeStr(m){
-  let h=Math.floor(m/60);
-  let min=m%60;
-  return ("0"+h).slice(-2)+":"+("0"+min).slice(-2);
-}
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
