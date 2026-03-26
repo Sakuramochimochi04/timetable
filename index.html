@@ -3,54 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dance TT Auto Builder</title>
+    <title>Dance TT Optimizer</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --gray: #5f6368; }
+        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --gray: #5f6368; --opt: #673ab7; }
         body { font-family: sans-serif; padding: 20px; background: #f4f7f9; color: #333; }
         .box { max-width: 850px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; }
         h1 { text-align: center; color: var(--primary); margin-bottom: 25px; }
         section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
-        
-        /* メンバーリスト */
         .m-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
         .m-item { background: #fff; border: 1px solid #ddd; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 0.9rem; }
-        
-        /* ユニット登録 */
         .u-form { background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; }
         .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; }
         .member-chip { cursor: pointer; padding: 6px 14px; border-radius: 20px; border: 1px solid #eee; background: #fff; font-size: 0.85rem; }
         .member-chip.selected { border-color: var(--primary); background: #e8f0fe; color: var(--primary); font-weight: bold; }
-        
-        /* 指定ボタン */
         .pos-btn-group { display: flex; gap: 10px; margin: 10px 0; }
         .pos-btn { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 0.8rem; }
         .pos-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        /* リスト */
         .u-card { background: #fff; border: 1px solid #e0e0e0; border-left: 5px solid #ccc; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; }
         .u-card.pos-first { border-left-color: #ffc107; background: #fffbeb; }
         .u-card.pos-last { border-left-color: #9c27b0; background: #fdf2ff; }
         .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
         .tag-first { background: #ffc107; color: #000; }
         .tag-last { background: #9c27b0; color: #fff; }
-
-        /* ボタン */
-        button { cursor: pointer; border-radius: 8px; transition: 0.2s; }
-        .btn-blue { background: var(--primary); color: white; border: none; padding: 10px 20px; font-weight: bold; }
-        .btn-green { background: var(--success); color: white; border: none; width: 100%; font-size: 1.1rem; font-weight: bold; padding: 15px; margin-top: 10px; }
-        .btn-orange { background: #ff9800; color: white; border: none; width: 100%; padding: 12px; margin-top: 10px; font-weight: bold; }
+        button { cursor: pointer; border-radius: 8px; transition: 0.2s; font-weight: bold; }
+        .btn-blue { background: var(--primary); color: white; border: none; padding: 10px 20px; }
+        .btn-green { background: var(--success); color: white; border: none; width: 100%; font-size: 1.1rem; padding: 15px; margin-top: 10px; }
+        .btn-opt { background: var(--opt); color: white; border: none; width: 100%; font-size: 1.1rem; padding: 15px; margin-top: 10px; box-shadow: 0 4px 0 #4527a0; }
+        .btn-opt:active { transform: translateY(3px); box-shadow: none; }
+        .btn-orange { background: #ff9800; color: white; border: none; width: 100%; padding: 12px; margin-top: 10px; }
         .btn-clear { background: none; color: var(--danger); border: 1px solid var(--danger); font-size: 11px; padding: 4px 8px; position: absolute; top: 15px; right: 15px; }
-
-        /* テーブル */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #eee; padding: 14px 10px; text-align: left; }
         th { background: #f1f3f4; color: #666; font-size: 0.8rem; }
-        .row-r { background: #fffdf2; color: #d97706; }
+        .row-r { background: #fffdf2; color: #d97706; font-weight: bold; }
         .row-mc { background: #f0fdf4; color: #166534; font-weight: bold; }
         .row-t { color: #aaa; font-size: 0.75rem; }
-
-        /* モード切替 */
         .no-print { display: block; }
         .final-mode .no-print { display: none !important; }
         .final-mode .box { box-shadow: none; border: 2px solid #000; }
@@ -62,17 +50,13 @@
 
 <div class="box" id="capture-area">
     <button id="back-btn" onclick="toggleM(false)">← 編集に戻る</button>
-    <button class="btn-clear no-print" onclick="if(confirm('全データを消去？')){localStorage.clear();location.reload();}">全データ消去</button>
-    
-    <h1>Dance TT Auto Builder</h1>
+    <button class="btn-clear no-print" onclick="if(confirm('全消去しますか？')){localStorage.clear();location.reload();}">全消去</button>
+    <h1>Dance TT Optimizer</h1>
 
     <div class="no-print">
         <section>
             <h3>1. メンバー登録</h3>
-            <div style="display:flex; gap:10px;">
-                <input type="text" id="mIn" style="flex:1; padding:10px;" placeholder="名前">
-                <button class="btn-blue" onclick="addM()">追加</button>
-            </div>
+            <div style="display:flex; gap:10px;"><input type="text" id="mIn" style="flex:1; padding:10px;" placeholder="名前"><button class="btn-blue" onclick="addM()">追加</button></div>
             <div id="mGrid" class="m-grid"></div>
         </section>
 
@@ -80,16 +64,12 @@
             <h3>2. ユニット登録</h3>
             <div class="u-form">
                 <input type="text" id="uIn" placeholder="ユニット名" style="width:100%; padding:10px; box-sizing:border-box;"><br>
-                <div style="margin:10px 0;">
-                    時間: <input type="number" id="uMin" value="3" style="width:50px; padding:5px;"> 分 
-                    <input type="number" id="uSec" value="0" style="width:50px; padding:5px;"> 秒
-                </div>
+                <div style="margin:10px 0;">時間: <input type="number" id="uMin" value="3" style="width:50px;"> 分 <input type="number" id="uSec" value="0" style="width:50px;"> 秒</div>
                 <div class="pos-btn-group">
                     <button id="p-none" class="pos-btn active" onclick="setPos('none')">順不同</button>
-                    <button id="p-first" class="pos-btn" onclick="setPos('first')">最初にする</button>
-                    <button id="p-last" class="pos-btn" onclick="setPos('last')">最後にする</button>
+                    <button id="p-first" class="pos-btn" onclick="setPos('first')">最初</button>
+                    <button id="p-last" class="pos-btn" onclick="setPos('last')">最後</button>
                 </div>
-                <p style="font-size:0.8rem; color:#666;">出演者を選択：</p>
                 <div id="chipContainer" class="chip-container"></div>
                 <button class="btn-blue" style="width:100%;" onclick="addU()">リストに追加</button>
             </div>
@@ -97,11 +77,10 @@
         </section>
 
         <section>
-            <h3>3. 設定 & 生成</h3>
-            開始: <input type="time" id="sT" value="13:00"> 
-            転換: <input type="number" id="tT" value="60" style="width:50px;"> 秒 
-            休憩: <input type="number" id="rT" value="5" style="width:50px;"> 分
-            <button class="btn-green" onclick="autoMake()">✨ いい感じに自動編成！</button>
+            <h3>3. 生成オプション</h3>
+            開始: <input type="time" id="sT" value="13:00"> 転換: <input type="number" id="tT" value="60" style="width:40px;"> 秒 休憩: <input type="number" id="rT" value="5" style="width:40px;"> 分
+            <button class="btn-opt" onclick="optimizeTT()">⚡ 休憩を最小化して編成！</button>
+            <button class="btn-green" style="background:var(--gray); opacity:0.8;" onclick="autoMake(false)">🎲 ランダムに編成</button>
         </section>
     </div>
 
@@ -112,15 +91,15 @@
             <tbody id="tBody"></tbody>
         </table>
         <div class="no-print">
-            <button class="btn-green" style="background:var(--gray);" onclick="toggleM(true)">清書モードにする</button>
-            <button class="btn-orange" onclick="saveImg()">🖼 画像として保存</button>
+            <button class="btn-green" onclick="toggleM(true)">清書モードへ</button>
+            <button class="btn-orange" onclick="saveImg()">🖼 画像保存</button>
         </div>
     </div>
 </div>
 
 <script>
     function load(k){ try{ return JSON.parse(localStorage.getItem(k)) || []; }catch(e){ return []; } }
-    let members = load('dm3'), units = load('du3'), tt = [], curPos = 'none';
+    let members = load('dm4'), units = load('du4'), tt = [], curPos = 'none';
 
     function refresh() {
         const mg = document.getElementById('mGrid'), cc = document.getElementById('chipContainer'), ul = document.getElementById('uList');
@@ -130,63 +109,61 @@
             cc.innerHTML += `<div class="member-chip" onclick="this.classList.toggle('selected')">${m}</div>`;
         });
         units.forEach((u, i) => {
-            const tag = u.pos==='first' ? '<span class="tag tag-first">最初</span>' : u.pos==='last' ? '<span class="tag tag-last">最後</span>' : '';
-            ul.innerHTML += `<div class="u-card pos-${u.pos}">
-                <div><b>${u.n}</b> ${tag}<br><small>⏱${Math.floor(u.d/60)}分${u.d%60}秒 👤${u.m.join(',')}</small></div>
-                <span onclick="delU(${i})" style="color:red;cursor:pointer;font-size:0.8rem;">削除</span>
-            </div>`;
+            const tag = u.pos==='first'?'<span class="tag tag-first">最初</span>':u.pos==='last'?'<span class="tag tag-last">最後</span>':'';
+            ul.innerHTML += `<div class="u-card pos-${u.pos}"><div><b>${u.n}</b> ${tag}<br><small>⏱${Math.floor(u.d/60)}分${u.d%60}秒 👤${u.m.join(',')}</small></div><span onclick="delU(${i})" style="color:red;cursor:pointer;font-size:0.8rem;">削除</span></div>`;
         });
-        localStorage.setItem('dm3', JSON.stringify(members));
-        localStorage.setItem('du3', JSON.stringify(units));
+        localStorage.setItem('dm4', JSON.stringify(members)); localStorage.setItem('du4', JSON.stringify(units));
     }
 
     function setPos(p){ curPos = p; document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active')); document.getElementById('p-'+p).classList.add('active'); }
     function addM(){ const i = document.getElementById('mIn'); if(i.value.trim()){ members.push(i.value.trim()); i.value=''; refresh(); } }
     function addU(){
-        const n = document.getElementById('uIn').value.trim();
-        const d = (parseInt(document.getElementById('uMin').value)||0)*60 + (parseInt(document.getElementById('uSec').value)||0);
-        const s = Array.from(document.querySelectorAll('.member-chip.selected')).map(el => el.innerText);
-        if(!n || d<=0 || s.length===0) return alert("入力不足です");
-        // 最初/最後指定は1つだけに上書き（親切設計）
+        const n = document.getElementById('uIn').value.trim(), d = (parseInt(document.getElementById('uMin').value)||0)*60 + (parseInt(document.getElementById('uSec').value)||0), s = Array.from(document.querySelectorAll('.member-chip.selected')).map(el => el.innerText);
+        if(!n || d<=0 || s.length===0) return alert("入力不足");
         if(curPos !== 'none') units.forEach(u => { if(u.pos === curPos) u.pos = 'none'; });
-        units.push({ n, d, m: s, pos: curPos });
-        document.getElementById('uIn').value=''; setPos('none'); refresh();
+        units.push({ n, d, m: s, pos: curPos }); document.getElementById('uIn').value=''; setPos('none'); refresh();
     }
     function delM(i){ members.splice(i,1); refresh(); }
     function delU(i){ units.splice(i,1); refresh(); }
 
-    // --- 自動編成アルゴリズム ---
-    function autoMake() {
+    // --- 休憩最小化ロジック ---
+    function optimizeTT() {
         if(units.length === 0) return;
         let first = units.find(u => u.pos === 'first');
         let last = units.find(u => u.pos === 'last');
-        let others = units.filter(u => u.pos === 'none');
+        let others = units.filter(u => u.pos === 'none').sort(() => Math.random() - 0.5);
 
-        // 1. 他をシャッフル
-        others.sort(() => Math.random() - 0.5);
+        let sorted = [];
+        if(first) sorted.push(first);
+        
+        let pool = [...others];
+        while(pool.length > 0) {
+            let lastUnit = sorted[sorted.length - 1];
+            // 被りがないものを探す
+            let idx = pool.findIndex(u => !u.m.some(m => lastUnit ? lastUnit.m.includes(m) : false));
+            // 見つからなければ仕方ないので先頭を取る（後の工程で休憩が入る）
+            if(idx === -1) idx = 0;
+            sorted.push(pool.splice(idx, 1)[0]);
+        }
+        if(last && !sorted.includes(last)) sorted.push(last);
+        
+        buildFinalTT(sorted);
+    }
 
-        // 2. 並びを組み立て
-        let pool = [];
-        if(first) pool.push(first);
-        pool.push(...others);
-        if(last) pool.push(last);
-
-        // 3. タイムテーブル形式に変換（連続出演チェック含む）
+    function buildFinalTT(pool) {
         const trans = parseInt(document.getElementById('tT').value)||0, rest = (parseInt(document.getElementById('rT').value)||0)*60;
         tt = []; let lastM = [];
-        let tempPool = [...pool];
-
-        while(tempPool.length > 0) {
-            let u = tempPool[0];
+        let temp = [...pool];
+        while(temp.length > 0) {
+            let u = temp[0];
             const conflict = u.m.some(m => lastM.includes(m));
             if(conflict && tt.length > 0) {
                 if(tt[tt.length-1].type==='t') tt.pop();
-                tt.push({ type: 'r', n: '【休憩】連続回避', d: rest, m: '-' });
-                lastM = [];
+                tt.push({ type: 'r', n: '【休憩】着替え待ち', d: rest, m: '-' }); lastM = [];
             } else {
-                tempPool.shift();
+                temp.shift();
                 tt.push({ type: 'u', n: u.n, d: u.d, m: u.m.join(', ') });
-                if(tempPool.length > 0) tt.push({ type: 't', n: '(転換)', d: trans, m: '-' });
+                if(temp.length > 0) tt.push({ type: 't', n: '(転換)', d: trans, m: '-' });
                 lastM = u.m;
             }
         }
@@ -198,11 +175,7 @@
         const body = document.getElementById('tBody'); body.innerHTML = '';
         tt.forEach((d, i) => {
             const cls = d.type==='r'?'row-r':d.type==='mc'?'row-mc':d.type==='t'?'row-t':'';
-            body.innerHTML += `<tr class="${cls}">
-                <td>${cur.toTimeString().split(' ')[0]}</td>
-                <td>${d.n} ${d.type==='mc'?`<span class="no-print" onclick="tt.splice(${i},1);draw()" style="color:red;cursor:pointer">[×]</span>`:''}</td>
-                <td>${d.m}</td><td>${Math.floor(d.d/60)}分${d.d%60}秒</td>
-            </tr>`;
+            body.innerHTML += `<tr class="${cls}"><td>${cur.toTimeString().split(' ')[0]}</td><td>${d.n} ${d.type==='mc'?`<span onclick="tt.splice(${i},1);draw()" style="color:red;cursor:pointer">[×]</span>`:''}</td><td>${d.m}</td><td>${Math.floor(d.d/60)}分${d.d%60}秒</td></tr>`;
             if(i < tt.length - 1) body.innerHTML += `<tr class="no-print"><td colspan="4" style="padding:0"><button onclick="insMC(${i})" style="width:100%;font-size:10px;background:none;border:1px dashed var(--primary);color:var(--primary);cursor:pointer">+ MC挿入</button></td></tr>`;
             cur = new Date(cur.getTime() + d.d * 1000);
         });
@@ -211,11 +184,7 @@
 
     function insMC(i){ const m = prompt("MC分", "5"); if(m){ tt.splice(i+1,0,{type:'mc',n:'【MC】トーク',d:parseInt(m)*60,m:'-'}); draw(); } }
     function toggleM(f){ document.getElementById('b').classList.toggle('final-mode', f); window.scrollTo(0,0); }
-    function saveImg(){
-        html2canvas(document.getElementById('capture-area')).then(canvas => {
-            const a = document.createElement('a'); a.download = 'timetable.png'; a.href = canvas.toDataURL(); a.click();
-        });
-    }
+    function saveImg(){ html2canvas(document.getElementById('capture-area')).then(canvas => { const a = document.createElement('a'); a.download='tt.png'; a.href=canvas.toDataURL(); a.click(); }); }
     refresh();
 </script>
 </body>
