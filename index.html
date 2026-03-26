@@ -2,87 +2,128 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ダンスサークル タイムテーブル作成</title>
+    <title>ダンスタイムテーブル作成</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; color: #333; padding: 20px; line-height: 1.5; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #1a73e8; }
-        section { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
-        h2 { font-size: 1.1rem; border-left: 4px solid #1a73e8; padding-left: 10px; margin-bottom: 15px; }
-        
-        .input-group { display: flex; gap: 8px; margin-bottom: 15px; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        button { cursor: pointer; background: #1a73e8; color: white; border: none; padding: 8px 16px; border-radius: 4px; }
-        button:hover { background: #1557b0; }
-        
-        .chip-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
-        .chip { background: #e8f0fe; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; display: flex; align-items: center; }
-        .del { margin-left: 8px; color: #d93025; cursor: pointer; font-weight: bold; }
-        
-        .unit-card { background: #fafafa; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
-        .checkbox-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; background: white; padding: 10px; border: 1px solid #eee; max-height: 120px; overflow-y: auto; margin: 10px 0; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background: #f8f9fa; }
-        .rest-row { background: #fff4e5; font-weight: bold; }
-        .mc-row { background: #e6fffa; color: #0891b2; font-weight: bold; }
-        .gen-btn { width: 100%; padding: 15px; background: #34a853; font-size: 1.1rem; font-weight: bold; margin-top: 10px; }
-        .mc-btn { display: block; margin: 5px auto; padding: 3px 10px; font-size: 0.7rem; background: none; color: #1a73e8; border: 1px dashed #1a73e8; border-radius: 10px; }
+        body { font-family: sans-serif; padding: 20px; background: #f9f9f9; }
+        .box { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 10px; shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+        input, button { padding: 8px; margin: 5px 0; }
+        .reset-btn { background: #ff4444; color: white; border: none; cursor: pointer; float: right; font-size: 12px; }
+        .add-btn { background: #007bff; color: white; border: none; cursor: pointer; }
+        .gen-btn { background: #28a745; color: white; border: none; width: 100%; padding: 15px; font-size: 18px; cursor: pointer; }
+        .item { display: flex; justify-content: space-between; background: #f0f0f0; margin: 5px 0; padding: 5px 10px; border-radius: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        .rest { background: #fff3cd; }
+        .mc { background: #d1ecf1; }
+        .mc-ins { display: block; margin: 5px auto; font-size: 10px; color: blue; cursor: pointer; border: 1px dashed blue; background: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="box">
+    <button class="reset-btn" onclick="clearAllData()">データを全消去して初期化</button>
     <h1>タイムテーブル作成</h1>
 
     <section>
         <h2>1. メンバー登録</h2>
-        <div class="input-group">
-            <input type="text" id="mName" placeholder="名前を入力">
-            <button id="addM">追加</button>
-        </div>
-        <div id="mList" class="chip-list"></div>
+        <input type="text" id="mIn" placeholder="名前">
+        <button class="add-btn" onclick="addM()">追加</button>
+        <div id="mList"></div>
     </section>
 
     <section>
         <h2>2. ユニット登録</h2>
-        <div class="unit-card">
-            <input type="text" id="uName" placeholder="ユニット名" style="width:70%">
-            <div style="margin:10px 0">
-                時間: <input type="number" id="uMin" placeholder="分" style="width:50px" min="0"> 分 
-                <input type="number" id="uSec" placeholder="秒" style="width:50px" min="0" max="59"> 秒
-            </div>
-            <p style="font-size:0.8rem; color:#666">出演者を選択:</p>
-            <div id="uChecks" class="checkbox-list"></div>
-            <button id="addU">ユニットを追加</button>
-        </div>
-        <div id="uListDisp" style="margin-top:10px"></div>
+        <input type="text" id="uIn" placeholder="ユニット名" style="width:200px"><br>
+        時間: <input type="number" id="uM" value="3" style="width:40px">分 
+        <input type="number" id="uS" value="0" style="width:40px">秒<br>
+        <p>出演者を選択:</p>
+        <div id="uCheck"></div>
+        <button class="add-btn" onclick="addU()">ユニットを追加</button>
+        <div id="uList"></div>
     </section>
 
     <section>
         <h2>3. 設定</h2>
-        <div class="input-group">
-            開始: <input type="time" id="sTime" value="13:00">
-            転換: <input type="number" id="tSec" value="60" style="width:50px"> 秒
-            休憩: <input type="number" id="rMin" value="5" style="width:50px"> 分
-        </div>
-        <button id="genBtn" class="gen-btn">タイムテーブル生成</button>
+        開始: <input type="time" id="sTime" value="13:00">
+        転換: <input type="number" id="tS" value="60" style="width:40px">秒
+        休憩: <input type="number" id="rM" value="5" style="width:40px">分
+        <button class="gen-btn" onclick="gen()">タイムテーブル生成</button>
     </section>
 
-    <section id="resArea" style="display:none">
+    <div id="res" style="display:none">
         <h2>完成タイムテーブル</h2>
-        <table>
-            <thead>
-                <tr><th>時刻</th><th>内容</th><th>出演者</th><th>時間</th></tr>
-            </thead>
+        <table id="tTable">
+            <thead><tr><th>時刻</th><th>内容</th><th>メンバー</th><th>時間</th></tr></thead>
             <tbody id="tBody"></tbody>
         </table>
-    </section>
+    </div>
 </div>
 
 <script>
-    // データの読み込みと初期化
-    let members = [];
-    let
+    // データの読み込み
+    let members = JSON.parse(localStorage.getItem('dance_m') || '[]');
+    let units = JSON.parse(localStorage.getItem('dance_u') || '[]');
+    let ttData = [];
+
+    // 画面の更新
+    function view() {
+        // メンバー一覧
+        const ml = document.getElementById('mList');
+        const uc = document.getElementById('uCheck');
+        ml.innerHTML = ''; uc.innerHTML = '';
+        members.forEach((m, i) => {
+            ml.innerHTML += `<div class="item">${m} <span onclick="delM(${i})" style="color:red; cursor:pointer">削除</span></div>`;
+            uc.innerHTML += `<label><input type="checkbox" name="c" value="${m}"> ${m}</label> `;
+        });
+
+        // ユニット一覧
+        const ul = document.getElementById('uList');
+        ul.innerHTML = '';
+        units.forEach((u, i) => {
+            ul.innerHTML += `<div class="item">${u.n} (${u.d}秒) <span onclick="delU(${i})" style="color:red; cursor:pointer">削除</span></div>`;
+        });
+
+        // 保存
+        localStorage.setItem('dance_m', JSON.stringify(members));
+        localStorage.setItem('dance_u', JSON.stringify(units));
+    }
+
+    // メンバー追加
+    function addM() {
+        const name = document.getElementById('mIn').value.trim();
+        if(name) {
+            members.push(name);
+            document.getElementById('mIn').value = '';
+            view();
+        }
+    }
+
+    // ユニット追加
+    function addU() {
+        const name = document.getElementById('uIn').value.trim();
+        const dur = (parseInt(document.getElementById('uM').value)||0)*60 + (parseInt(document.getElementById('uS').value)||0);
+        const sel = Array.from(document.querySelectorAll('input[name="c"]:checked')).map(c => c.value);
+        if(!name || dur <= 0 || sel.length === 0) return alert("入力が足りません");
+        units.push({ n: name, d: dur, m: sel });
+        document.getElementById('uIn').value = '';
+        view();
+    }
+
+    function delM(i) { members.splice(i,1); view(); }
+    function delU(i) { units.splice(i,1); view(); }
+    function clearAllData() { localStorage.clear(); location.reload(); }
+
+    // 生成
+    function gen() {
+        if(units.length === 0) return alert("ユニットがありません");
+        const trans = parseInt(document.getElementById('tS').value) || 0;
+        const rest = (parseInt(document.getElementById('rM').value) || 0) * 60;
+        
+        ttData = [];
+        let lastM = [];
+        let remain = [...units];
+
+        while(remain.length > 0) {
+            let idx = remain.findIndex(u => !u.m.some(m => lastM.includes(m)));
+            if(idx === -
