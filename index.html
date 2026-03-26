@@ -10,11 +10,11 @@
         h1 { text-align: center; color: var(--primary); margin-bottom: 30px; font-weight: 800; }
         section { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
         
-        /* メンバーリスト（1行に3人程度） */
+        /* メンバーリスト（3列） */
         .m-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
         .m-item { background: #fff; border: 1px solid #ddd; padding: 8px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
 
-        /* おしゃれな出演者選択チップ */
+        /* チップ選択 */
         .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; }
         .member-chip { cursor: pointer; padding: 8px 16px; border-radius: 20px; border: 2px solid #eee; background: white; transition: 0.3s; font-size: 0.85rem; user-select: none; }
         .member-chip.selected { border-color: var(--primary); background: #e8f0fe; color: var(--primary); font-weight: bold; }
@@ -27,16 +27,22 @@
         .btn-finish { background: var(--gray); color: white; border: none; width: 100%; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 30px; }
         .btn-clear { background: var(--danger); color: white; border: none; padding: 5px 10px; font-size: 11px; float: right; cursor: pointer; border-radius: 4px; }
 
-        /* タイムテーブル */
+        /* 登録済みユニットリストのスタイル */
+        .u-item-card { background: #fff; border: 1px solid #e0e0e0; border-left: 5px solid var(--primary); padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .u-info { flex: 1; }
+        .u-info b { font-size: 1.1rem; color: #333; }
+        .u-info .u-meta { font-size: 0.85rem; color: #666; margin-top: 4px; }
+        .u-info .u-mems { font-size: 0.85rem; color: var(--primary); margin-top: 2px; }
+
+        /* タイムテーブル表 */
         table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 8px; overflow: hidden; }
         th, td { border: 1px solid #eee; padding: 16px 12px; text-align: left; }
-        th { background: #f1f3f4; font-size: 0.85rem; color: #777; text-transform: uppercase; }
+        th { background: #f1f3f4; font-size: 0.85rem; color: #777; }
         .row-u { font-weight: bold; }
         .row-r { background: #fffdf2; color: #d97706; font-size: 0.85rem; }
         .row-mc { background: #f0fdf4; color: #166534; font-weight: bold; }
         .row-t { color: #aaa; font-size: 0.8rem; }
         
-        /* 削除ボタン */
         .del-text { color: var(--danger); cursor: pointer; font-weight: bold; margin-left: 10px; font-size: 0.8rem; }
         .ins-mc-btn { display: block; width: 100%; padding: 4px; background: none; border: 1px dashed var(--primary); color: var(--primary); cursor: pointer; font-size: 10px; margin: 2px 0; border-radius: 4px; }
 
@@ -51,7 +57,7 @@
 
 <div class="box">
     <button id="back-btn" onclick="toggleM(false)">← 編集に戻る</button>
-    <button class="btn-clear no-print" onclick="if(confirm('全データを消去？')){localStorage.clear();location.reload();}">全データ消去</button>
+    <button class="btn-clear no-print" onclick="if(confirm('全てのデータを消去しますか？')){localStorage.clear();location.reload();}">全データ消去</button>
     
     <h1>Event Schedule</h1>
 
@@ -65,15 +71,17 @@
 
         <section>
             <h3>2. ユニット登録</h3>
-            <input type="text" id="uIn" placeholder="ユニット名" style="width: 95%;"><br>
-            <div style="margin: 10px 0;">
-                出演時間: <input type="number" id="uMin" value="3" style="width: 50px;"> 分 
-                <input type="number" id="uSec" value="0" style="width: 50px;"> 秒
+            <div style="background: #fafafa; padding: 20px; border-radius: 10px; border: 1px solid #eee;">
+                <input type="text" id="uIn" placeholder="ユニット名（例：Girls HipHop）" style="width: 95%;"><br>
+                <div style="margin: 15px 0;">
+                    出演時間: <input type="number" id="uMin" value="3" style="width: 60px;"> 分 
+                    <input type="number" id="uSec" value="0" style="width: 60px;"> 秒
+                </div>
+                <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 5px;">出演者を選択：</p>
+                <div id="chipContainer" class="chip-container"></div>
+                <button class="btn-blue" style="width: 100%;" onclick="addU()">ユニットをリストに追加</button>
             </div>
-            <p style="font-size: 0.8rem; color: #666;">出演者を選択（クリックで選択）：</p>
-            <div id="chipContainer" class="chip-container"></div>
-            <button class="btn-blue" onclick="addU()">ユニットを登録</button>
-            <div id="uList" style="margin-top:15px;"></div>
+            <div id="uList" style="margin-top:20px;"></div>
         </section>
 
         <section>
@@ -81,12 +89,12 @@
             開始: <input type="time" id="sT" value="13:00"> 
             転換: <input type="number" id="tT" value="60" style="width: 50px;"> 秒 
             休憩: <input type="number" id="rT" value="5" style="width: 50px;"> 分
-            <button class="btn-green" onclick="make()">タイムテーブルを生成</button>
+            <button class="btn-green" onclick="make()">タイムテーブルを仮生成</button>
         </section>
     </div>
 
     <div id="res" style="display:none;">
-        <h2 style="text-align:center;">TIME TABLE</h2>
+        <h2 style="text-align:center; letter-spacing: 3px;">TIME TABLE</h2>
         <table>
             <thead><tr><th>時刻</th><th>内容</th><th>出演者</th><th>時間</th></tr></thead>
             <tbody id="tBody"></tbody>
@@ -103,14 +111,25 @@
         const mg = document.getElementById('mGrid'), cc = document.getElementById('chipContainer'), ul = document.getElementById('uList');
         mg.innerHTML = ''; cc.innerHTML = ''; ul.innerHTML = '';
         
+        // メンバー登録リスト
         members.forEach((m, i) => {
             mg.innerHTML += `<div class="m-item"><span>${m}</span><span class="del-text" onclick="delM(${i})">×</span></div>`;
             cc.innerHTML += `<div class="member-chip" onclick="this.classList.toggle('selected')">${m}</div>`;
         });
+
+        // 登録済みユニットリスト（詳細表示）
         units.forEach((u, i) => {
-            ul.innerHTML += `<div class="list-item" style="background:#fff; border:1px solid #eee; margin-bottom:5px; padding:8px; border-radius:5px;">
-                <span><b>${u.n}</b> (${u.d}s)</span><span class="del-text" onclick="delU(${i})">削除</span></div>`;
+            ul.innerHTML += `
+                <div class="u-item-card">
+                    <div class="u-info">
+                        <b>${u.n}</b>
+                        <div class="u-meta">⏱ ${Math.floor(u.d/60)}分${u.d%60}秒</div>
+                        <div class="u-mems">👤 ${u.m.join(', ')}</div>
+                    </div>
+                    <button class="del-text" style="background:none; border:none;" onclick="delU(${i})">削除</button>
+                </div>`;
         });
+
         localStorage.setItem('dm', JSON.stringify(members));
         localStorage.setItem('du', JSON.stringify(units));
     }
@@ -119,11 +138,19 @@
     
     function addU(){
         const n = document.getElementById('uIn').value.trim();
-        const d = (parseInt(document.getElementById('uMin').value)||0)*60 + (parseInt(document.getElementById('uSec').value)||0);
+        const min = parseInt(document.getElementById('uMin').value)||0;
+        const sec = parseInt(document.getElementById('uSec').value)||0;
+        const d = (min * 60) + sec;
         const s = Array.from(document.querySelectorAll('.member-chip.selected')).map(el => el.innerText);
-        if(!n || d<=0 || s.length===0){ alert("詳細を入力してください"); return; }
+        
+        if(!n || d<=0 || s.length===0){ alert("ユニット名・時間・出演者をすべて入力・選択してください"); return; }
+        
         units.push({ n: n, d: d, m: s });
-        document.getElementById('uIn').value=''; refresh();
+        // 入力をリセット
+        document.getElementById('uIn').value='';
+        document.getElementById('uMin').value='3';
+        document.getElementById('uSec').value='0';
+        refresh();
     }
 
     function delM(i){ members.splice(i,1); refresh(); }
@@ -138,7 +165,7 @@
             let idx = rem.findIndex(u => !u.m.some(m => last.includes(m)));
             if(idx === -1) {
                 if(tt.length>0 && tt[tt.length-1].type==='t') tt.pop();
-                tt.push({ type: 'r', n: '【休憩】', d: rest, m: '-' }); last = []; continue;
+                tt.push({ type: 'r', n: '【休憩】連続回避', d: rest, m: '-' }); last = []; continue;
             }
             const target = rem.splice(idx,1)[0];
             tt.push({ type: 'u', n: target.n, d: target.d, m: target.m.join(', ') });
@@ -153,12 +180,14 @@
         const body = document.getElementById('tBody'); body.innerHTML = '';
         tt.forEach((d, i) => {
             const cls = d.type==='r'?'row-r':d.type==='mc'?'row-mc':d.type==='t'?'row-t':'row-u';
-            const delBtn = d.type==='mc' ? `<span class="del-text" onclick="delMC(${i})">[削除]</span>` : '';
+            const delBtn = d.type==='mc' ? `<span class="del-text" onclick="delMC(${i})">[×解除]</span>` : '';
+            
             body.innerHTML += `<tr class="${cls}">
                 <td>${cur.toTimeString().split(' ')[0]}</td>
                 <td>${d.n} ${delBtn}</td><td>${d.m}</td>
                 <td>${Math.floor(d.d/60)}分${d.d%60}秒</td>
             </tr>`;
+            
             if(i < tt.length - 1) {
                 body.innerHTML += `<tr class="no-print"><td colspan="4" style="border:none;padding:0;"><button class="ins-mc-btn" onclick="insMC(${i})">+ ここにMCを挿入</button></td></tr>`;
             }
@@ -167,13 +196,16 @@
         document.getElementById('res').style.display = 'block';
     }
 
-    function insMC(i){ const m = prompt("MC時間(分)", "5"); if(m){ tt.splice(i+1,0,{type:'mc',n:'【MC】',d:parseInt(m)*60,m:'-'}); draw(); } }
+    function insMC(i){ const m = prompt("MCの時間（分）を入力してください", "5"); if(m){ tt.splice(i+1,0,{type:'mc',n:'【MC】',d:parseInt(m)*60,m:'-'}); draw(); } }
 
     function toggleM(f) {
         const b = document.getElementById('b');
-        if(f) b.classList.add('final-mode');
-        else b.classList.remove('final-mode');
-        window.scrollTo(0,0);
+        if(f) {
+            b.classList.add('final-mode');
+            window.scrollTo(0,0);
+        } else {
+            b.classList.remove('final-mode');
+        }
     }
 
     refresh();
