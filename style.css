@@ -1,26 +1,14 @@
-body {
-  font-family: sans-serif;
-  padding: 20px;
-  background: #f5f5f5;
-}
-
-h2 {
-  margin-bottom: 10px;
-}
-
-input {
-  padding: 6px;
-  margin-right: 5px;
-}
-
-button {
-  padding: 6px 10px;
-  cursor: pointer;
-}
-
-.item {
-  background: white;
-  padding: 8px;
-  margin: 5px 0;
-  border-radius: 6px;
-}
+body { font-family: sans-serif; background: #f4f7f6; color: #333; line-height: 1.6; }
+.container { max-width: 800px; margin: 20px auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+h2 { border-left: 5px solid #007bff; padding-left: 10px; margin-top: 30px; }
+.input-group, .input-card { margin-bottom: 15px; }
+.input-card { border: 1px solid #ddd; padding: 15px; border-radius: 5px; }
+.chip-list { display: flex; flex-wrap: wrap; gap: 5px; list-style: none; padding: 0; }
+.chip { background: #e0e0e0; padding: 5px 10px; border-radius: 20px; display: flex; align-items: center; }
+.delete-btn { margin-left: 8px; cursor: pointer; color: red; font-weight: bold; }
+.checkbox-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 5px; margin: 10px 0; max-height: 150px; overflow-y: auto; border: 1px solid #eee; padding: 10px; }
+table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+th { background: #007bff; color: white; }
+.rest-row { background: #fff3cd; font-style: italic; }
+.generate-btn { width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 1.1em; cursor: pointer; }
