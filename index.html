@@ -1,44 +1,41 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>タイムテーブル生成</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
+function generate(){
+  let order = smartSchedule(units);
 
-<h2>① 人を登録</h2>
-<input id="personName">
-<button onclick="addPerson()">追加</button>
-<div id="personList"></div>
+  let time = toSec(document.getElementById("startTime").value);
 
-<h2>② ユニット作成</h2>
-<input id="unitName" placeholder="ユニット名">
+  let changeMin = parseInt(document.getElementById("changeMin").value) || 0;
+  let changeSec = parseInt(document.getElementById("changeSec").value) || 0;
+  let change = changeMin * 60 + changeSec;
 
-時間：
-<input id="unitMin" type="number" placeholder="分">
-<input id="unitSec" type="number" placeholder="秒">
+  let breakMin = parseInt(document.getElementById("breakMin").value) || 0;
+  let breakTime = breakMin * 60;
 
-<div id="selectPersons"></div>
-<button onclick="addUnit()">ユニット追加</button>
-<div id="unitList"></div>
+  let breakInterval = parseInt(document.getElementById("breakInterval").value) || 0;
 
-<h2>③ 設定</h2>
-開始時間 <input type="time" step="1" id="startTime" value="13:00:00"><br>
+  let html = "";
 
-転換：
-<input id="changeMin" type="number" value="0">分
-<input id="changeSec" type="number" value="30">秒<br>
+  order.forEach((u,index)=>{
 
-休憩：
-<input id="breakMin" type="number" value="10">分
-<input id="breakInterval" type="number" value="3">組ごと<br>
+    // 👇 メンバー表示追加
+    let membersText = u.members.length > 0 ? `（${u.members.join(", ")}）` : "";
 
-<button onclick="generate()">生成</button>
+    html += `${toTime(time)} - ${u.name} ${membersText}（${Math.floor(u.time/60)}分${u.time%60}秒）<br>`;
+    time += u.time;
 
-<h2>結果</h2>
-<div id="result"></div>
+    // 転換
+    if(change > 0){
+      html += `　↳ 転換（${changeMin}分${changeSec}秒）<br>`;
+      time += change;
+    }
 
-<script src="script.js"></script>
-</body>
-</html>
+    // 休憩
+    if(breakInterval > 0 && (index+1)%breakInterval === 0 && index !== order.length-1){
+      html += `★休憩（${breakMin}分）<br>`;
+      time += breakTime;
+    }
+  });
+
+  html += `<br>終了：${toTime(time)}`;
+
+  document.getElementById("result").innerHTML = html;
+}
