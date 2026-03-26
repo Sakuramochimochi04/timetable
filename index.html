@@ -1,156 +1,161 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>タイムテーブル作成</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-    }
-    textarea {
-      width: 100%;
-      height: 120px;
-    }
-    .settings {
-      margin: 10px 0;
-    }
-    label {
-      display: block;
-      margin: 5px 0;
-    }
-    button {
-      padding: 10px 20px;
-      margin-right: 10px;
-      font-size: 16px;
-    }
-    #result {
-      margin-top: 20px;
-      background: #f5f5f5;
-      padding: 15px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>タイムテーブル生成</title>
+<style>
+body { font-family: sans-serif; padding: 20px; }
+.tag { display:inline-block; background:#ddd; padding:5px 10px; margin:5px; cursor:pointer; }
+.selected { background:#4caf50; color:white; }
+.unit { border:1px solid #ccc; padding:10px; margin:10px 0; }
+</style>
 </head>
 <body>
 
-<h1>タイムテーブル作成</h1>
+<h2>① 人を登録</h2>
+<input id="personName">
+<button onclick="addPerson()">追加</button>
+<div id="personList"></div>
 
-<textarea id="input" placeholder="名前,ユニット,時間(分)
-例：
-A,ユニット1,10
-B,ユニット2,8"></textarea>
+<h2>② ユニット作成</h2>
+<input id="unitName" placeholder="ユニット名">
+<input id="unitTime" type="number" placeholder="時間(分)">
+<div id="selectPersons"></div>
+<button onclick="addUnit()">ユニット追加</button>
+<div id="unitList"></div>
 
-<div class="settings">
-  <label>開始時間：<input type="time" id="startTime" value="13:00"></label>
-  <label>転換時間(分)：<input type="number" id="changeTime" value="5"></label>
-  <label>何組ごとに休憩：<input type="number" id="breakInterval" value="3"></label>
-  <label>休憩時間(分)：<input type="number" id="breakTime" value="10"></label>
-</div>
+<h2>③ 設定</h2>
+開始時間 <input type="time" id="startTime" value="13:00"><br>
+転換時間 <input type="number" id="changeTime" value="5"><br>
+何組ごとに休憩 <input type="number" id="breakInterval" value="3"><br>
+休憩時間 <input type="number" id="breakTime" value="10"><br>
 
-<button onclick="createTable()">作成</button>
-<button onclick="saveData()">保存</button>
-<button onclick="loadData()">読み込み</button>
+<button onclick="generate()">生成</button>
 
 <h2>結果</h2>
 <div id="result"></div>
 
 <script>
-// メイン処理
-function createTable() {
-  const input = document.getElementById("input").value.trim().split("\n");
-  const startTime = document.getElementById("startTime").value;
-  const changeTime = parseInt(document.getElementById("changeTime").value);
-  const breakInterval = parseInt(document.getElementById("breakInterval").value);
-  const breakTime = parseInt(document.getElementById("breakTime").value);
+let persons = [];
+let units = [];
+let selected = [];
 
-  let list = input.map(line => {
-    let [name, unit, time] = line.split(",");
-    return { name, unit, time: parseInt(time) };
+// 人追加
+function addPerson(){
+  let name = document.getElementById("personName").value;
+  if(!name) return;
+  persons.push(name);
+  document.getElementById("personName").value = "";
+  renderPersons();
+}
+
+// 人表示
+function renderPersons(){
+  let html = "";
+  persons.forEach(p => {
+    html += `<span class="tag" onclick="toggleSelect('${p}')">${p}</span>`;
   });
+  document.getElementById("personList").innerHTML = html;
+  document.getElementById("selectPersons").innerHTML = html;
+}
 
-  list = shuffleAvoidSame(list);
+// 選択
+function toggleSelect(name){
+  if(selected.includes(name)){
+    selected = selected.filter(n => n !== name);
+  } else {
+    selected.push(name);
+  }
+  renderSelected();
+}
 
-  let current = timeToMinutes(startTime);
-  let result = "";
-
-  list.forEach((item, index) => {
-    result += `${minutesToTime(current)} - ${item.unit} (${item.name})<br>`;
-    current += item.time;
-
-    current += changeTime;
-
-    if ((index + 1) % breakInterval === 0 && index !== list.length - 1) {
-      result += `<strong>--- 休憩 ---</strong><br>`;
-      current += breakTime;
+function renderSelected(){
+  let tags = document.querySelectorAll(".tag");
+  tags.forEach(tag => {
+    if(selected.includes(tag.innerText)){
+      tag.classList.add("selected");
+    } else {
+      tag.classList.remove("selected");
     }
   });
+}
 
-  result += `<br><strong>終了時間：${minutesToTime(current)}</strong>`;
+// ユニット追加
+function addUnit(){
+  let name = document.getElementById("unitName").value;
+  let time = parseInt(document.getElementById("unitTime").value);
+
+  units.push({ name, time, members:[...selected] });
+
+  selected = [];
+  renderSelected();
+  renderUnits();
+}
+
+// ユニット表示
+function renderUnits(){
+  let html = "";
+  units.forEach(u => {
+    html += `<div class="unit">${u.name} (${u.time}分) - ${u.members.join(", ")}</div>`;
+  });
+  document.getElementById("unitList").innerHTML = html;
+}
+
+// 並び替え
+function generate(){
+  let order = shuffle(units);
+
+  let start = toMin(document.getElementById("startTime").value);
+  let change = parseInt(document.getElementById("changeTime").value);
+  let breakInt = parseInt(document.getElementById("breakInterval").value);
+  let breakTime = parseInt(document.getElementById("breakTime").value);
+
+  let result = "";
+
+  for(let i=0;i<order.length;i++){
+    result += timeStr(start) + " - " + order[i].name + "<br>";
+    start += order[i].time + change;
+
+    if((i+1)%breakInt===0 && i!==order.length-1){
+      result += "----休憩----<br>";
+      start += breakTime;
+    }
+  }
 
   document.getElementById("result").innerHTML = result;
 }
 
-// 同じ人連続回避
-function shuffleAvoidSame(list) {
-  let shuffled = [...list].sort(() => Math.random() - 0.5);
+// 同じ人回避
+function shuffle(arr){
+  let a = [...arr].sort(()=>Math.random()-0.5);
 
-  for (let i = 0; i < shuffled.length - 1; i++) {
-    if (shuffled[i].name === shuffled[i + 1].name) {
-      for (let j = i + 2; j < shuffled.length; j++) {
-        if (shuffled[j].name !== shuffled[i].name) {
-          [shuffled[i + 1], shuffled[j]] = [shuffled[j], shuffled[i + 1]];
+  for(let i=0;i<a.length-1;i++){
+    if(hasSame(a[i], a[i+1])){
+      for(let j=i+2;j<a.length;j++){
+        if(!hasSame(a[i], a[j])){
+          [a[i+1],a[j]]=[a[j],a[i+1]];
           break;
         }
       }
     }
   }
-  return shuffled;
+  return a;
 }
 
-// 時間処理
-function timeToMinutes(time) {
-  let [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
+function hasSame(u1,u2){
+  return u1.members.some(m => u2.members.includes(m));
 }
 
-function minutesToTime(min) {
-  let h = Math.floor(min / 60);
-  let m = min % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+function toMin(t){
+  let [h,m]=t.split(":").map(Number);
+  return h*60+m;
 }
 
-// 保存
-function saveData() {
-  const data = {
-    input: document.getElementById("input").value,
-    startTime: document.getElementById("startTime").value,
-    changeTime: document.getElementById("changeTime").value,
-    breakInterval: document.getElementById("breakInterval").value,
-    breakTime: document.getElementById("breakTime").value
-  };
-  localStorage.setItem("timetableData", JSON.stringify(data));
-  alert("保存した！");
+function timeStr(m){
+  let h=Math.floor(m/60);
+  let min=m%60;
+  return ("0"+h).slice(-2)+":"+("0"+min).slice(-2);
 }
-
-// 読み込み
-function loadData() {
-  const data = JSON.parse(localStorage.getItem("timetableData"));
-  if (!data) {
-    alert("保存データなし");
-    return;
-  }
-
-  document.getElementById("input").value = data.input;
-  document.getElementById("startTime").value = data.startTime;
-  document.getElementById("changeTime").value = data.changeTime;
-  document.getElementById("breakInterval").value = data.breakInterval;
-  document.getElementById("breakTime").value = data.breakTime;
-}
-
-// ページ開いたら自動読み込み
-window.onload = function() {
-  loadData();
-};
 </script>
 
 </body>
