@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dance TT Optimizer - Anti-Clustering</title>
+    <title>Dance TT Optimizer - Balanced Anywhere</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
@@ -21,6 +21,8 @@
         .u-card { background: #fff; border: 1px solid #e0e0e0; border-left: 8px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
         .u-card.pos-first { border-left-color: #ffc107; background: #fffdf0; }
         .u-card.pos-last { border-left-color: #9c27b0; background: #fef0ff; }
+        .edit-tag-btn { font-size: 0.7rem; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; margin-right: 2px; }
+        .edit-tag-btn.active { background: #333; color: #fff; border-color: #333; }
         button { cursor: pointer; border-radius: 8px; font-weight: bold; }
         .btn-blue { background: var(--primary); color: white; border: none; padding: 10px 20px; }
         .btn-opt { background: var(--opt); color: white; border: none; width: 100%; font-size: 1.1rem; padding: 15px; margin-top: 10px; box-shadow: 0 4px 0 #4527a0; }
@@ -29,7 +31,6 @@
         th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
         .row-r { background: #fff5f5; color: #e53e3e; font-weight: bold; }
         .no-print { display: block; }
-        #back-btn { display: none; margin-bottom: 15px; background: #eee; border: 1px solid #ccc; padding: 8px; }
     </style>
 </head>
 <body id="b">
@@ -58,8 +59,8 @@
         <section>
             <h3>3. 生成オプション</h3>
             開始: <input type="time" id="sT" value="13:00"> 転換: <input type="number" id="tT" value="60" style="width:40px;"> 秒 休憩: <input type="number" id="rT" value="5" style="width:40px;"> 分
-            <button class="btn-opt" onclick="smartOptimize()">⚡ 休憩を分散させて自動編成！</button>
-            <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">※15ユニット以上ある場合、適度に休憩を散らすよう調整します</p>
+            <button class="btn-opt" onclick="balancedOptimize()">⚡ 休憩を均等に分散して編成！</button>
+            <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">※ユニット数に関わらず、休憩が固まらないように自動計算します</p>
         </section>
     </div>
 
@@ -78,7 +79,7 @@
 <script>
     const { jsPDF } = window.jspdf;
     function load(k){ try{ return JSON.parse(localStorage.getItem(k)) || []; }catch(e){ return []; } }
-    let members = load('dm8'), units = load('du8'), tt = [];
+    let members = load('dm9'), units = load('du9'), tt = [];
 
     function refresh() {
         members.sort((a, b) => a.localeCompare(b, 'ja'));
@@ -91,7 +92,7 @@
         units.forEach((u, i) => {
             ul.innerHTML += `<div class="u-card pos-${u.pos}"><div><b>${u.n}</b><br><small>👤${u.m.join(', ')}</small><div style="margin-top:8px;"><button class="edit-tag-btn ${u.pos==='none'?'active':''}" onclick="updateUIPos(${i},'none')">順不同</button><button class="edit-tag-btn ${u.pos==='first'?'active':''}" onclick="updateUIPos(${i},'first')">最初</button><button class="edit-tag-btn ${u.pos==='last'?'active':''}" onclick="updateUIPos(${i},'last')">最後</button></div></div><span onclick="delU(${i})" style="color:red;cursor:pointer">削除</span></div>`;
         });
-        localStorage.setItem('dm8', JSON.stringify(members)); localStorage.setItem('du8', JSON.stringify(units));
+        localStorage.setItem('dm9', JSON.stringify(members)); localStorage.setItem('du9', JSON.stringify(units));
     }
 
     function addM(){ const i = document.getElementById('mIn'); if(i.value.trim()){ members.push(i.value.trim()); i.value=''; refresh(); } }
@@ -104,67 +105,74 @@
     function delU(i){ units.splice(i,1); refresh(); }
     function updateUIPos(idx, pos) { if(pos !== 'none') units.forEach((u, i) => { if(u.pos === pos) u.pos = 'none'; }); units[idx].pos = pos; refresh(); }
 
-    // --- 改良版：分散型最適化ロジック ---
-    function smartOptimize() {
+    // --- 均等分散・評価型ロジック ---
+    function balancedOptimize() {
         if(units.length === 0) return;
-        
-        let attempts = 0;
-        let bestResult = null;
-        let minPenalty = Infinity;
+        let bestPool = null;
+        let minScore = Infinity;
 
-        // 何パターンか試して一番「休憩が分散している」ものを選ぶ
-        while(attempts < 50) {
-            let res = tryGenerate();
-            let penalty = calculatePenalty(res);
-            if(penalty < minPenalty) {
-                minPenalty = penalty;
-                bestResult = res;
+        // 100パターン生成して一番「休憩の散らばり」が良いものを選ぶ
+        for(let i=0; i<100; i++) {
+            let pool = generateRandomPool();
+            let score = evaluatePool(pool);
+            if(score < minScore) {
+                minScore = score;
+                bestPool = pool;
             }
-            attempts++;
         }
-        
-        buildFinalTT(bestResult);
+        buildFinalTT(bestPool);
     }
 
-    function tryGenerate() {
+    function generateRandomPool() {
         let first = units.find(u => u.pos === 'first');
         let last = units.find(u => u.pos === 'last');
         let others = units.filter(u => u.pos === 'none').sort(() => Math.random() - 0.5);
-
-        let sorted = [];
-        if(first) sorted.push(first);
         
-        let pool = [...others];
-        while(pool.length > 0) {
-            let prev = sorted[sorted.length - 1];
-            // 被りがない候補を抽出
-            let candidates = pool.filter(u => !u.m.some(m => prev ? prev.m.includes(m) : false));
-            
-            if(candidates.length > 0) {
-                // 前半に詰め込みすぎないよう、候補からランダムに選択
-                let chosen = candidates[Math.floor(Math.random() * candidates.length)];
-                sorted.push(chosen);
-                pool = pool.filter(u => u !== chosen);
+        let pool = [];
+        if(first) pool.push(first);
+        
+        let tempOthers = [...others];
+        while(tempOthers.length > 0) {
+            let prev = pool[pool.length - 1];
+            // 重複がないものを優先的に探す（が、完全なランダム性も残す）
+            let candidates = tempOthers.filter(u => !u.m.some(m => prev ? prev.m.includes(m) : false));
+            let chosen;
+            if(candidates.length > 0 && Math.random() > 0.2) {
+                chosen = candidates[Math.floor(Math.random() * candidates.length)];
             } else {
-                sorted.push(pool.shift());
+                chosen = tempOthers[Math.floor(Math.random() * tempOthers.length)];
             }
+            pool.push(chosen);
+            tempOthers = tempOthers.filter(u => u !== chosen);
         }
-        if(last && !sorted.includes(last)) sorted.push(last);
-        return sorted;
+        if(last && !pool.includes(last)) pool.push(last);
+        return pool;
     }
 
-    // 「休憩の固まり」をチェックする評価関数
-    function calculatePenalty(sequence) {
-        let penalty = 0;
-        for(let i=0; i < sequence.length - 1; i++) {
-            let current = sequence[i];
-            let next = sequence[i+1];
-            // メンバーが被っている＝休憩が発生する
-            if(current.m.some(m => next.m.includes(m))) {
-                // 後半（インデックスが大きい方）での発生に重いペナルティ
-                penalty += (i + 1); 
+    function evaluatePool(pool) {
+        let breakPositions = [];
+        let lastM = [];
+        // 休憩が発生する場所を特定
+        pool.forEach((u, i) => {
+            if(u.m.some(m => lastM.includes(m))) {
+                breakPositions.push(i);
             }
-        }
+            lastM = u.m;
+        });
+
+        if(breakPositions.length === 0) return 0;
+
+        // ペナルティ計算: 
+        // 1. 後半に寄っているほど高い (固まり防止)
+        // 2. 休憩同士の距離が近いほど高い (連続防止)
+        let penalty = 0;
+        let lastPos = -1;
+        breakPositions.forEach(pos => {
+            penalty += Math.pow(pos, 1.5); // 後半ほど重く
+            if(lastPos !== -1 && pos - lastPos <= 1) penalty += 100; // 連続休憩は超重く
+            lastPos = pos;
+        });
+        
         return penalty;
     }
 
