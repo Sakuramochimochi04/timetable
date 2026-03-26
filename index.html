@@ -3,416 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dance Event Timetable Builder Pro</title>
+    <title>Dance TT Auto Builder</title>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --gray: #5f6368; --bg: #f8f9fa; }
-        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif; padding: 20px; background: var(--bg); color: #333; line-height: 1.6; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); position: relative; }
+        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --gray: #5f6368; }
+        body { font-family: sans-serif; padding: 20px; background: #f4f7f9; color: #333; }
+        .box { max-width: 850px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 25px; }
+        section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
         
-        h1 { text-align: center; color: var(--primary); margin-bottom: 30px; font-weight: 800; letter-spacing: -1px; }
-        section { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 25px; }
-        h3 { font-size: 1.2rem; color: var(--gray); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        /* メンバーリスト */
+        .m-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .m-item { background: #fff; border: 1px solid #ddd; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 0.9rem; }
         
-        /* 編集モード・清書モードの切り替え */
+        /* ユニット登録 */
+        .u-form { background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; }
+        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; }
+        .member-chip { cursor: pointer; padding: 6px 14px; border-radius: 20px; border: 1px solid #eee; background: #fff; font-size: 0.85rem; }
+        .member-chip.selected { border-color: var(--primary); background: #e8f0fe; color: var(--primary); font-weight: bold; }
+        
+        /* 指定ボタン */
+        .pos-btn-group { display: flex; gap: 10px; margin: 10px 0; }
+        .pos-btn { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff; cursor: pointer; font-size: 0.8rem; }
+        .pos-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* リスト */
+        .u-card { background: #fff; border: 1px solid #e0e0e0; border-left: 5px solid #ccc; padding: 12px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; }
+        .u-card.pos-first { border-left-color: #ffc107; background: #fffbeb; }
+        .u-card.pos-last { border-left-color: #9c27b0; background: #fdf2ff; }
+        .tag { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
+        .tag-first { background: #ffc107; color: #000; }
+        .tag-last { background: #9c27b0; color: #fff; }
+
+        /* ボタン */
+        button { cursor: pointer; border-radius: 8px; transition: 0.2s; }
+        .btn-blue { background: var(--primary); color: white; border: none; padding: 10px 20px; font-weight: bold; }
+        .btn-green { background: var(--success); color: white; border: none; width: 100%; font-size: 1.1rem; font-weight: bold; padding: 15px; margin-top: 10px; }
+        .btn-orange { background: #ff9800; color: white; border: none; width: 100%; padding: 12px; margin-top: 10px; font-weight: bold; }
+        .btn-clear { background: none; color: var(--danger); border: 1px solid var(--danger); font-size: 11px; padding: 4px 8px; position: absolute; top: 15px; right: 15px; }
+
+        /* テーブル */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #eee; padding: 14px 10px; text-align: left; }
+        th { background: #f1f3f4; color: #666; font-size: 0.8rem; }
+        .row-r { background: #fffdf2; color: #d97706; }
+        .row-mc { background: #f0fdf4; color: #166534; font-weight: bold; }
+        .row-t { color: #aaa; font-size: 0.75rem; }
+
+        /* モード切替 */
         .no-print { display: block; }
         .final-mode .no-print { display: none !important; }
-        .final-mode .container { box-shadow: none; border: 2px solid #333; padding: 20px; }
-        #back-btn { display: none; margin-bottom: 20px; background: #f1f3f4; color: #333; border: 1px solid #ccc; }
+        .final-mode .box { box-shadow: none; border: 2px solid #000; }
+        #back-btn { display: none; margin-bottom: 15px; background: #eee; border: 1px solid #ccc; padding: 8px; }
         .final-mode #back-btn { display: inline-block; }
-
-        /* 入力フォーム・ボタン共通 */
-        input, button, select { padding: 12px 15px; border-radius: 8px; border: 1px solid #ddd; font-size: 15px; outline: none; transition: 0.2s; }
-        input[type="text"]:focus, input[type="number"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,115,232,0.1); }
-        
-        .btn { cursor: pointer; font-weight: bold; text-align: center; border: none; display: inline-flex; align-items: center; gap: 8px; justify-content: center; }
-        .btn-blue { background: var(--primary); color: white; }
-        .btn-blue:hover { background: #1557b0; }
-        .btn-green { background: var(--success); color: white; width: 100%; font-size: 1.1rem; margin-top: 15px; }
-        .btn-green:hover { background: #2d8e47; }
-        .btn-gray { background: var(--gray); color: white; width: 100%; font-size: 1.1rem; margin-top: 30px; }
-        .btn-red-outline { background: none; color: var(--danger); border: 1px solid var(--danger); font-size: 12px; padding: 5px 10px; position: absolute; top: 20px; right: 20px; }
-        .btn-red-outline:hover { background: var(--danger); color: white; }
-        .btn-save-img { background: #ff9800; color: white; margin-top: 15px; width: 100%; font-size: 1rem; }
-
-        /* 1. メンバー登録 (3列グリッド) */
-        .m-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 15px; }
-        .m-item { background: #fff; border: 1px solid #eee; padding: 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-        .m-item span { font-weight: 500; }
-        .del-icon { color: var(--danger); cursor: pointer; font-weight: bold; font-size: 1.2rem; margin-left: 10px; user-select: none; }
-
-        /* 2. ユニット登録 (チップ選択) */
-        .u-form-box { background: #fafafa; padding: 25px; border-radius: 12px; border: 1px solid #eee; }
-        .chip-container { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; min-height: 40px; padding: 10px; background: white; border-radius: 8px; border: 1px solid #eee; }
-        .member-chip { cursor: pointer; padding: 8px 18px; border-radius: 20px; border: 2px solid #f0f0f0; background: white; transition: 0.3s; font-size: 0.9rem; user-select: none; color: #555; }
-        .member-chip:hover { border-color: #ddd; background: #f9f9f9; }
-        .member-chip.selected { border-color: var(--primary); background: #e8f0fe; color: var(--primary); font-weight: 600; box-shadow: 0 2px 8px rgba(26,115,232,0.15); }
-
-        /* 登録済みユニットリスト (ドラッグ＆ドロップ対応) */
-        #uList { margin-top: 20px; counter-reset: unit-counter; }
-        .u-item-card { background: #fff; border: 1px solid #e0e0e0; border-left: 6px solid var(--primary); padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; cursor: grab; position: relative; transition: transform 0.2s, box-shadow: 0.2s; user-select: none; }
-        .u-item-card:active { cursor: grabbing; transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .u-item-card.dragging { opacity: 0.5; border: 2px dashed #ccc; background: #fafafa; }
-        .u-item-card::before { counter-increment: unit-counter; content: counter(unit-counter) "."; font-weight: bold; color: var(--primary); font-size: 1.2rem; margin-right: 15px; width: 25px; text-align: right; }
-        .u-info { flex: 1; }
-        .u-title { font-size: 1.1rem; font-weight: 700; color: #333; }
-        .u-meta { font-size: 0.85rem; color: #666; margin-top: 4px; display: flex; gap: 15px; }
-        .u-mems { font-size: 0.85rem; color: var(--primary); margin-top: 3px; font-weight: 500; }
-        .drag-handle { color: #ccc; font-size: 1.5rem; margin-left: 15px; cursor: grab; }
-
-        /* タイムテーブル表 */
-        #timetable-wrap { margin-top: 30px; }
-        table { width: 100%; border-collapse: collapse; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.03); table-layout: fixed; }
-        th, td { border: 1px solid #eee; padding: 18px 12px; text-align: left; word-wrap: break-word; }
-        th { background: #f1f3f4; font-size: 0.85rem; color: #666; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; }
-        th:nth-child(1) { width: 15%; } /* 時刻 */
-        th:nth-child(2) { width: 30%; } /* 内容 */
-        th:nth-child(3) { width: 40%; } /* 出演者 */
-        th:nth-child(4) { width: 15%; } /* 時間 */
-        
-        .row-u { font-weight: bold; background: #fff; }
-        .row-r { background: #fffdf2; color: #d97706; font-size: 0.9rem; font-weight: 500; }
-        .row-mc { background: #f0fdf4; color: #166534; font-weight: bold; }
-        .row-t { color: #bbb; font-size: 0.8rem; }
-        
-        .ins-mc-btn { display: block; width: 100%; padding: 5px; background: none; border: 1px dashed var(--primary); color: var(--primary); cursor: pointer; font-size: 11px; margin: 3px 0; border-radius: 5px; transition: 0.2s; }
-        .ins-mc-btn:hover { background: rgba(26,115,232,0.05); border-style: solid; }
-        .del-mc-text { color: var(--danger); cursor: pointer; font-weight: bold; margin-left: 10px; font-size: 0.8rem; user-select: none; }
-
-        /* ローディング表示 */
-        #loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(250,250,250,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; font-weight: bold; color: var(--primary); }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin-bottom: 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body id="b">
 
-<div id="loading"><div class="spinner"></div>画像を作成中...</div>
-
-<div class="container" id="capture-area">
-    <button id="back-btn" class="btn" onclick="toggleM(false)">← 編集に戻る</button>
-    <button class="btn btn-red-outline no-print" onclick="if(confirm('全てのデータを消去しますか？\n（復元できません）')){localStorage.clear();location.reload();}">全データ消去</button>
+<div class="box" id="capture-area">
+    <button id="back-btn" onclick="toggleM(false)">← 編集に戻る</button>
+    <button class="btn-clear no-print" onclick="if(confirm('全データを消去？')){localStorage.clear();location.reload();}">全データ消去</button>
     
-    <h1 id="main-title">Event Schedule Builder</h1>
+    <h1>Dance TT Auto Builder</h1>
 
     <div class="no-print">
         <section>
-            <h3>👤 1. メンバー登録</h3>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="mIn" style="flex: 1;" placeholder="名前を入力（例：サトシ）">
-                <button class="btn btn-blue" onclick="addM()">追加</button>
+            <h3>1. メンバー登録</h3>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="mIn" style="flex:1; padding:10px;" placeholder="名前">
+                <button class="btn-blue" onclick="addM()">追加</button>
             </div>
             <div id="mGrid" class="m-grid"></div>
         </section>
 
         <section>
-            <h3>💃 2. ユニット登録</h3>
-            <p style="font-size: 0.85rem; color: #777; margin-bottom: 10px;">※登録後、リストをドラッグして出演順を並べ替えられます。</p>
-            <div class="u-form-box">
-                <input type="text" id="uIn" placeholder="ユニット名（例：Girls HipHop A）" style="width: 100%; box-sizing: border-box;"><br>
-                <div style="margin: 15px 0; display: flex; align-items: center; gap: 10px;">
-                    出演時間: 
-                    <input type="number" id="uMin" value="3" style="width: 60px; text-align: center;" min="0"> 分 
-                    <input type="number" id="uSec" value="0" style="width: 60px; text-align: center;" min="0" max="59"> 秒
+            <h3>2. ユニット登録</h3>
+            <div class="u-form">
+                <input type="text" id="uIn" placeholder="ユニット名" style="width:100%; padding:10px; box-sizing:border-box;"><br>
+                <div style="margin:10px 0;">
+                    時間: <input type="number" id="uMin" value="3" style="width:50px; padding:5px;"> 分 
+                    <input type="number" id="uSec" value="0" style="width:50px; padding:5px;"> 秒
                 </div>
-                <p style="font-size: 0.9rem; font-weight: bold; margin-bottom: 8px;">出演者を選択（クリックで選択）：</p>
+                <div class="pos-btn-group">
+                    <button id="p-none" class="pos-btn active" onclick="setPos('none')">順不同</button>
+                    <button id="p-first" class="pos-btn" onclick="setPos('first')">最初にする</button>
+                    <button id="p-last" class="pos-btn" onclick="setPos('last')">最後にする</button>
+                </div>
+                <p style="font-size:0.8rem; color:#666;">出演者を選択：</p>
                 <div id="chipContainer" class="chip-container"></div>
-                <button class="btn btn-blue" style="width: 100%;" onclick="addU()">ユニットをリストに追加</button>
+                <button class="btn-blue" style="width:100%;" onclick="addU()">リストに追加</button>
             </div>
-            <div id="uList"></div> </section>
+            <div id="uList" style="margin-top:15px;"></div>
+        </section>
 
         <section>
-            <h3>⚙️ 3. 全体設定</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center; background: #fafafa; padding: 15px; border-radius: 10px; border: 1px solid #eee;">
-                開始時刻: <input type="time" id="sT" value="13:00"> 
-                曲間転換: <div style="display:inline-flex; align-items:center; gap:5px;"><input type="number" id="tT" value="60" style="width: 60px; text-align: center;"> 秒</div>
-                連続回避休憩: <div style="display:inline-flex; align-items:center; gap:5px;"><input type="number" id="rT" value="5" style="width: 60px; text-align: center;"> 分</div>
-            </div>
-            <button class="btn btn-green" onclick="makeTT()">タイムテーブルを生成</button>
+            <h3>3. 設定 & 生成</h3>
+            開始: <input type="time" id="sT" value="13:00"> 
+            転換: <input type="number" id="tT" value="60" style="width:50px;"> 秒 
+            休憩: <input type="number" id="rT" value="5" style="width:50px;"> 分
+            <button class="btn-green" onclick="autoMake()">✨ いい感じに自動編成！</button>
         </section>
     </div>
 
     <div id="res" style="display:none;">
-        <hr class="no-print" style="border: 0; border-top: 2px solid #eee; margin: 40px 0;">
-        <h2 id="tt-final-title" style="text-align:center; letter-spacing: 5px; font-weight: 800; color: #333; margin-bottom: 20px;">TIME TABLE</h2>
-        <div id="timetable-wrap">
-            <table>
-                <thead><tr><th>時刻</th><th>内容</th><th>出演者</th><th>時間</th></tr></thead>
-                <tbody id="tBody"></tbody>
-            </table>
-        </div>
+        <h2 style="text-align:center;">TIME TABLE</h2>
+        <table>
+            <thead><tr><th>時刻</th><th>内容</th><th>出演者</th><th>時間</th></tr></thead>
+            <tbody id="tBody"></tbody>
+        </table>
         <div class="no-print">
-            <button class="btn btn-finish" onclick="toggleM(true)">完成（清書モードへ）</button>
-            <button class="btn btn-save-img" onclick="saveAsImage()">🖼 タイムテーブルを画像として保存</button>
+            <button class="btn-green" style="background:var(--gray);" onclick="toggleM(true)">清書モードにする</button>
+            <button class="btn-orange" onclick="saveImg()">🖼 画像として保存</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- データ管理 ---
     function load(k){ try{ return JSON.parse(localStorage.getItem(k)) || []; }catch(e){ return []; } }
-    let members = load('dm_v2'), units = load('du_v2'), tt = []; // V2データとして保存
+    let members = load('dm3'), units = load('du3'), tt = [], curPos = 'none';
 
-    // --- 画面更新 (初期化 & 描画) ---
     function refresh() {
         const mg = document.getElementById('mGrid'), cc = document.getElementById('chipContainer'), ul = document.getElementById('uList');
         mg.innerHTML = ''; cc.innerHTML = ''; ul.innerHTML = '';
-        
-        // 1. メンバー登録リスト
-        members.sort().forEach((m, i) => {
-            mg.innerHTML += `<div class="m-item"><span>${m}</span><span class="del-icon" onclick="delM(${i})" title="削除">×</span></div>`;
+        members.forEach((m, i) => {
+            mg.innerHTML += `<div class="m-item"><span>${m}</span><span onclick="delM(${i})" style="color:red;cursor:pointer">×</span></div>`;
             cc.innerHTML += `<div class="member-chip" onclick="this.classList.toggle('selected')">${m}</div>`;
         });
-
-        // 2. 登録済みユニットリスト（ドラッグ＆ドロップ対応）
         units.forEach((u, i) => {
-            ul.innerHTML += `
-                <div class="u-item-card" draggable="true" data-index="${i}">
-                    <div class="u-info">
-                        <div class="u-title">${u.n}</div>
-                        <div class="u-meta"><span>⏱ ${Math.floor(u.d/60)}分${u.d%60}秒</span><span>👤 ${u.m.length}名</span></div>
-                        <div class="u-mems">${u.m.join(', ')}</div>
-                    </div>
-                    <span class="del-text" onclick="delU(${i})">削除</span>
-                    <div class="drag-handle">☰</div>
-                </div>`;
+            const tag = u.pos==='first' ? '<span class="tag tag-first">最初</span>' : u.pos==='last' ? '<span class="tag tag-last">最後</span>' : '';
+            ul.innerHTML += `<div class="u-card pos-${u.pos}">
+                <div><b>${u.n}</b> ${tag}<br><small>⏱${Math.floor(u.d/60)}分${u.d%60}秒 👤${u.m.join(',')}</small></div>
+                <span onclick="delU(${i})" style="color:red;cursor:pointer;font-size:0.8rem;">削除</span>
+            </div>`;
         });
-
-        localStorage.setItem('dm_v2', JSON.stringify(members));
-        localStorage.setItem('du_v2', JSON.stringify(units));
-        initDragAndDrop(); // ドラッグ＆ドロップ機能をバインド
+        localStorage.setItem('dm3', JSON.stringify(members));
+        localStorage.setItem('du3', JSON.stringify(units));
     }
 
-    // --- メンバー操作 ---
-    function addM(){
-        const i = document.getElementById('mIn');
-        const name = i.value.trim();
-        if(name && !members.includes(name)){
-            members.push(name);
-            i.value='';
-            refresh();
-        } else if(members.includes(name)) {
-            alert("その名前は既に登録されています");
-        }
-    }
-    function delM(i){ if(confirm(`メンバー「${members[i]}」を削除しますか？\n（ユニットの出演者設定からも消えます）`)){
-        const name = members[i];
-        members.splice(i,1);
-        // ユニットからもそのメンバーを消す
-        units.forEach(u => { u.m = u.m.filter(m => m !== name); });
-        refresh();
-    }}
-    
-    // --- ユニット操作 ---
+    function setPos(p){ curPos = p; document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active')); document.getElementById('p-'+p).classList.add('active'); }
+    function addM(){ const i = document.getElementById('mIn'); if(i.value.trim()){ members.push(i.value.trim()); i.value=''; refresh(); } }
     function addU(){
         const n = document.getElementById('uIn').value.trim();
-        const min = parseInt(document.getElementById('uMin').value)||0;
-        const sec = parseInt(document.getElementById('uSec').value)||0;
-        const d = (min * 60) + sec;
+        const d = (parseInt(document.getElementById('uMin').value)||0)*60 + (parseInt(document.getElementById('uSec').value)||0);
         const s = Array.from(document.querySelectorAll('.member-chip.selected')).map(el => el.innerText);
-        
-        if(!n || d<=0 || s.length===0){ alert("ユニット名・時間・出演者をすべて入力・選択してください"); return; }
-        
-        units.push({ n: n, d: d, m: s });
-        // 入力をリセット
-        document.getElementById('uIn').value='';
-        document.getElementById('uMin').value='3';
-        document.getElementById('uSec').value='0';
-        refresh();
+        if(!n || d<=0 || s.length===0) return alert("入力不足です");
+        // 最初/最後指定は1つだけに上書き（親切設計）
+        if(curPos !== 'none') units.forEach(u => { if(u.pos === curPos) u.pos = 'none'; });
+        units.push({ n, d, m: s, pos: curPos });
+        document.getElementById('uIn').value=''; setPos('none'); refresh();
     }
-    function delU(i){ if(confirm(`ユニット「${units[i].n}」を削除しますか？`)){ units.splice(i,1); refresh(); } }
-    function delMC(i){ tt.splice(i,1); drawTT(); } // MC枠の削除
+    function delM(i){ members.splice(i,1); refresh(); }
+    function delU(i){ units.splice(i,1); refresh(); }
 
-    // --- タイムテーブル生成ロジック ---
-    function makeTT() {
-        if(units.length === 0){ alert("ユニットを登録してください"); return; }
-        const trans = parseInt(document.getElementById('tT').value)||0;
-        const restSec = (parseInt(document.getElementById('rT').value)||0)*60;
-        
-        tt = [];
-        let lastMems = [];
-        let remainUnits = [...units]; // 現在の並び順（units配列の順）で処理
+    // --- 自動編成アルゴリズム ---
+    function autoMake() {
+        if(units.length === 0) return;
+        let first = units.find(u => u.pos === 'first');
+        let last = units.find(u => u.pos === 'last');
+        let others = units.filter(u => u.pos === 'none');
 
-        while(remainUnits.length > 0) {
-            // 連続出演（直前のユニットのメンバーと被りがあるか）をチェック
-            // remUnits[0] は常に「リストの一番上にある未処理のユニット」
-            const currentUnit = remainUnits[0];
-            const isConflict = currentUnit.m.some(m => lastMems.includes(m));
+        // 1. 他をシャッフル
+        others.sort(() => Math.random() - 0.5);
 
-            if(isConflict && tt.length > 0) {
-                // メンバーが被っていて、かつ最初のユニットでない場合、「休憩」を入れる
-                // 休憩を入れる際、直前が「転換」なら、それを休憩に置き換える（転換を消す）
-                if(tt[tt.length-1].type === 't') {
-                    tt.pop(); 
-                }
-                tt.push({ type: 'r', n: '【休憩】連続出演回避', d: restSec, m: '-' });
-                lastMems = []; // 休憩後は被りリセット
-                // 休憩を入れても、まだ currentUnit は remainUnits の先頭に残したまま、次のループへ
+        // 2. 並びを組み立て
+        let pool = [];
+        if(first) pool.push(first);
+        pool.push(...others);
+        if(last) pool.push(last);
+
+        // 3. タイムテーブル形式に変換（連続出演チェック含む）
+        const trans = parseInt(document.getElementById('tT').value)||0, rest = (parseInt(document.getElementById('rT').value)||0)*60;
+        tt = []; let lastM = [];
+        let tempPool = [...pool];
+
+        while(tempPool.length > 0) {
+            let u = tempPool[0];
+            const conflict = u.m.some(m => lastM.includes(m));
+            if(conflict && tt.length > 0) {
+                if(tt[tt.length-1].type==='t') tt.pop();
+                tt.push({ type: 'r', n: '【休憩】連続回避', d: rest, m: '-' });
+                lastM = [];
             } else {
-                // 被りがない、または休憩を挟んだ後、または最初のユニットの場合、出演させる
-                const target = remainUnits.shift(); // 先頭を取り出す
-                tt.push({ type: 'u', n: target.n, d: target.d, m: target.m.join(', ') });
-                
-                if(remainUnits.length > 0) {
-                    // まだ次のユニットがあるなら、転換を入れる
-                    tt.push({ type: 't', n: '(転換)', d: trans, m: '-' });
-                }
-                lastMems = target.m; // 出演したメンバーを記録
+                tempPool.shift();
+                tt.push({ type: 'u', n: u.n, d: u.d, m: u.m.join(', ') });
+                if(tempPool.length > 0) tt.push({ type: 't', n: '(転換)', d: trans, m: '-' });
+                lastM = u.m;
             }
         }
-        drawTT();
+        draw();
     }
 
-    // --- タイムテーブル描画 ---
-    function drawTT() {
-        const startTime = document.getElementById('sT').value;
-        let cur = new Date(`2026/01/01 ${startTime}`);
-        const body = document.getElementById('tBody');
-        body.innerHTML = '';
-        
-        if(tt.length === 0) { document.getElementById('res').style.display='none'; return; }
-
+    function draw() {
+        let cur = new Date(`2026/01/01 ${document.getElementById('sT').value}`);
+        const body = document.getElementById('tBody'); body.innerHTML = '';
         tt.forEach((d, i) => {
-            const cls = d.type==='r'?'row-r':d.type==='mc'?'row-mc':d.type==='t'?'row-t':'row-u';
-            const delBtn = d.type==='mc' ? `<span class="del-mc-text no-print" onclick="delMC(${i})">[×解除]</span>` : '';
-            
+            const cls = d.type==='r'?'row-r':d.type==='mc'?'row-mc':d.type==='t'?'row-t':'';
             body.innerHTML += `<tr class="${cls}">
                 <td>${cur.toTimeString().split(' ')[0]}</td>
-                <td>${d.n} ${delBtn}</td>
-                <td>${d.m}</td>
-                <td>${Math.floor(d.d/60)}分${d.d%60}秒</td>
+                <td>${d.n} ${d.type==='mc'?`<span class="no-print" onclick="tt.splice(${i},1);draw()" style="color:red;cursor:pointer">[×]</span>`:''}</td>
+                <td>${d.m}</td><td>${Math.floor(d.d/60)}分${d.d%60}秒</td>
             </tr>`;
-            
-            // MC挿入ボタン（最後の行以外）
-            if(i < tt.length - 1) {
-                body.innerHTML += `<tr class="no-print"><td colspan="4" style="border:none;padding:0;"><button class="ins-mc-btn" onclick="insMC(${i})">+ ここにMC（トーク）を挿入</button></td></tr>`;
-            }
+            if(i < tt.length - 1) body.innerHTML += `<tr class="no-print"><td colspan="4" style="padding:0"><button onclick="insMC(${i})" style="width:100%;font-size:10px;background:none;border:1px dashed var(--primary);color:var(--primary);cursor:pointer">+ MC挿入</button></td></tr>`;
             cur = new Date(cur.getTime() + d.d * 1000);
         });
         document.getElementById('res').style.display = 'block';
-        // タイムテーブルを生成したら、清書モード用のタイトルに設定を反映
-        document.getElementById('tt-final-title').innerText = `TIME TABLE (${startTime} START)`;
     }
 
-    // --- MC挿入 ---
-    function insMC(i){
-        const m = prompt("MCの時間（分）を入力してください", "5");
-        if(m && !isNaN(m) && parseInt(m) > 0){
-            tt.splice(i+1, 0, {type:'mc', n:'【MC】トーク枠', d:parseInt(m)*60, m:'-'});
-            drawTT();
-        } else if (m !== null) {
-            alert("正しい分数を入力してください。");
-        }
-    }
-
-    // --- モード切り替え (清書/編集) ---
-    function toggleM(isFinal) {
-        const b = document.getElementById('b');
-        if(isFinal) {
-            b.classList.add('final-mode');
-            window.scrollTo(0,0);
-        } else {
-            b.classList.remove('final-mode');
-        }
-    }
-
-    // --- ドラッグ＆ドロップの実装 ---
-    let dragSrcEl = null;
-
-    function initDragAndDrop() {
-        const cards = document.querySelectorAll('#uList .u-item-card');
-        cards.forEach(card => {
-            card.addEventListener('dragstart', handleDragStart, false);
-            card.addEventListener('dragenter', handleDragEnter, false);
-            card.addEventListener('dragover', handleDragOver, false);
-            card.addEventListener('dragleave', handleDragLeave, false);
-            card.addEventListener('drop', handleDrop, false);
-            card.addEventListener('dragend', handleDragEnd, false);
+    function insMC(i){ const m = prompt("MC分", "5"); if(m){ tt.splice(i+1,0,{type:'mc',n:'【MC】トーク',d:parseInt(m)*60,m:'-'}); draw(); } }
+    function toggleM(f){ document.getElementById('b').classList.toggle('final-mode', f); window.scrollTo(0,0); }
+    function saveImg(){
+        html2canvas(document.getElementById('capture-area')).then(canvas => {
+            const a = document.createElement('a'); a.download = 'timetable.png'; a.href = canvas.toDataURL(); a.click();
         });
     }
-
-    function handleDragStart(e) {
-        dragSrcEl = this;
-        this.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/html', this.innerHTML);
-    }
-    function handleDragOver(e) { if (e.preventDefault) { e.preventDefault(); } e.dataTransfer.dropEffect = 'move'; return false; }
-    function handleDragEnter(e) { this.classList.add('over'); }
-    function handleDragLeave(e) { this.classList.remove('over'); }
-
-    function handleDrop(e) {
-        if (e.stopPropagation) { e.stopPropagation(); }
-        if (dragSrcEl !== this) {
-            // 配列の並び替え
-            const fromIndex = parseInt(dragSrcEl.getAttribute('data-index'));
-            const toIndex = parseInt(this.getAttribute('data-index'));
-            
-            // 配列の要素を入れ替える
-            const temp = units[fromIndex];
-            units.splice(fromIndex, 1);
-            units.splice(toIndex, 0, temp);
-            
-            refresh(); // 再描画して保存
-        }
-        return false;
-    }
-    function handleDragEnd(e) {
-        this.classList.remove('dragging');
-        const cards = document.querySelectorAll('#uList .u-item-card');
-        cards.forEach(card => card.classList.remove('over'));
-    }
-
-    // --- 画像として保存 (html2canvas使用) ---
-    function saveAsImage() {
-        const area = document.getElementById('capture-area');
-        const loading = document.getElementById('loading');
-        const ttRes = document.getElementById('res');
-
-        if(ttRes.style.display === 'none') { alert("まずタイムテーブルを生成してください"); return; }
-
-        // 保存用に一時的に「完成モード」にする
-        const b = document.getElementById('b');
-        const isFinalAlready = b.classList.contains('final-mode');
-        if(!isFinalAlready) b.classList.add('final-mode');
-
-        loading.style.display = 'flex'; // ローディング表示
-
-        // html2canvasを実行
-        html2canvas(area, {
-            scale: 2, // 高解像度にする
-            backgroundColor: "#ffffff", // 背景を白にする
-            logging: false,
-            useCORS: true // 外部画像がある場合用
-        }).then(canvas => {
-            // 画像データ(PNG)に変換
-            const imgData = canvas.toDataURL('image/png');
-            
-            // ダウンロード用のリンクを作ってクリックさせる
-            const link = document.createElement('a');
-            const now = new Date();
-            const timeStr = `${now.getMonth()+1}${now.getDate()}_${now.getHours()}${now.getMinutes()}`;
-            link.download = `timetable_${timeStr}.png`;
-            link.href = imgData;
-            document.body.appendChild(link);
-            link.click();
-            document.body.appendChild(link);
-            document.body.removeChild(link);
-
-            // 元のモードに戻す
-            if(!isFinalAlready) b.classList.remove('final-mode');
-            loading.style.display = 'none';
-        }).catch(err => {
-            console.error(err);
-            alert("画像の保存に失敗しました。ブラウザの設定や環境を確認してください。");
-            if(!isFinalAlready) b.classList.remove('final-mode');
-            loading.style.display = 'none';
-        });
-    }
-
-    // 最初に起動
     refresh();
 </script>
-
 </body>
 </html>
