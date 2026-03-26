@@ -2,45 +2,75 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>タイムテーブル生成</title>
-<link rel="stylesheet" href="style.css">
+<title>テスト</title>
 </head>
 <body>
 
-<h2>① 人を登録</h2>
-<input id="personName">
-<button onclick="addPerson()">追加</button>
-<div id="personList"></div>
+<h2>人を登録</h2>
+<input id="name">
+<button onclick="add()">追加</button>
 
-<h2>② ユニット作成</h2>
-<input id="unitName" placeholder="ユニット名">
+<div id="list"></div>
 
-時間：
-<input id="unitMin" type="number" placeholder="分">
-<input id="unitSec" type="number" placeholder="秒">
+<script>
+let db;
 
-<div id="selectPersons"></div>
-<button onclick="addUnit()">ユニット追加</button>
-<div id="unitList"></div>
+// DB作成
+let req = indexedDB.open("testDB", 1);
 
-<h2>③ 設定</h2>
-開始時間 <input type="time" step="1" id="startTime" value="13:00:00"><br>
+req.onupgradeneeded = e => {
+  db = e.target.result;
+  db.createObjectStore("people", { keyPath: "id", autoIncrement: true });
+};
 
-転換：
-<input id="changeMin" type="number" value="0">分
-<input id="changeSec" type="number" value="30">秒<br>
+req.onsuccess = e => {
+  db = e.target.result;
+  load();
+};
 
-休憩：
-<input id="breakMin" type="number" value="10">分
-<input id="breakInterval" type="number" value="3">組ごと<br>
+// 追加
+function add(){
+  let name = document.getElementById("name").value;
+  if(!name) return;
 
-<button onclick="generate()">生成</button>
+  let tx = db.transaction("people", "readwrite");
+  tx.objectStore("people").add({name});
 
-<h2>結果</h2>
-<div id="result"></div>
+  tx.oncomplete = load;
+}
 
-<!-- ここ重要 -->
-<script src="script.js"></script>
+// 表示
+function load(){
+  let tx = db.transaction("people", "readonly");
+  let store = tx.objectStore("people");
+
+  let html = "";
+
+  store.openCursor().onsuccess = e => {
+    let cursor = e.target.result;
+
+    if(cursor){
+      html += `
+        <div>
+          ${cursor.value.name}
+          <button onclick="del(${cursor.value.id})">削除</button>
+        </div>
+      `;
+      cursor.continue();
+    } else {
+      document.getElementById("list").innerHTML = html;
+    }
+  };
+}
+
+// 削除
+function del(id){
+  let tx = db.transaction("people", "readwrite");
+  tx.objectStore("people").delete(id);
+
+  tx.oncomplete = load;
+}
+</script>
 
 </body>
 </html>
