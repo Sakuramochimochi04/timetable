@@ -2,21 +2,43 @@
 
 // ★ addUnitだけ変更
 function addUnit(){
-  let name=document.getElementById("unitName").value;
-  let min=parseInt(document.getElementById("unitMin").value)||0;
-  let sec=parseInt(document.getElementById("unitSec").value)||0;
+  let name = document.getElementById("unitName").value.trim();
 
-  let time=min*60+sec;
+  let min = parseInt(document.getElementById("unitMin").value);
+  let sec = parseInt(document.getElementById("unitSec").value);
 
-  if(!name || time===0 || selected.length===0) return;
+  // 空対策
+  if(isNaN(min)) min = 0;
+  if(isNaN(sec)) sec = 0;
 
-  units.push({name,time,members:[...selected]});
+  let time = min * 60 + sec;
 
-  selected=[];
+  if(!name){
+    alert("ユニット名入れて");
+    return;
+  }
+
+  if(time === 0){
+    alert("時間入れて");
+    return;
+  }
+
+  if(selected.length === 0){
+    alert("メンバー選んで");
+    return;
+  }
+
+  units.push({ name, time, members:[...selected] });
+
+  // リセット
+  document.getElementById("unitName").value = "";
+  document.getElementById("unitMin").value = "";
+  document.getElementById("unitSec").value = "";
+
+  selected = [];
   updateTag();
   renderUnits();
 }
-
 // ===== 時間変換 =====
 function toSec(t){
   let [h,m,s]=t.split(":").map(Number);
