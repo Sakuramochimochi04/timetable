@@ -206,7 +206,7 @@
             const conflict = u.m.some(m => lastM.includes(m));
             if(conflict && tt.length > 0) {
                 if(tt[tt.length-1].type==='t') tt.pop();
-                tt.push({ type: 'r', n: '【休憩】着替え待ち', d: rest, m: '-' });
+                tt.push({ type: 'r', n: '【休憩】着替えなど', d: rest, m: '-' });
             }
             tt.push({ type: 'u', n: u.n, d: u.d, m: u.m.join(', ') });
             if(i < pool.length - 1) tt.push({ type: 't', n: '(転換)', d: trans, m: '-' });
@@ -251,7 +251,7 @@
     function insItem(i, type){
         const m = prompt("時間（分）", "5");
         if(m){
-            tt.splice(i+1, 0, { type: type, n: type==='mc' ? '【MC】トーク' : '【休憩】自由時間', d: parseInt(m)*60, m: '-' });
+            tt.splice(i+1, 0, { type: type, n: type==='mc' ? '【MC】トーク' : '【休憩】', d: parseInt(m)*60, m: '-' });
             draw();
         }
     }
