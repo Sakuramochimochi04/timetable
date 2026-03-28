@@ -251,7 +251,7 @@
     function insItem(i, type){
         const m = prompt("時間（分）", "5");
         if(m){
-            tt.splice(i+1, 0, { type: type, n: type==='mc' ? '【MC】トーク' : '【休憩】', d: parseInt(m)*60, m: '-' });
+            tt.splice(i+1, 0, { type: type, n: type==='mc' ? '【MC】' : '【休憩】', d: parseInt(m)*60, m: '-' });
             draw();
         }
     }
