@@ -3,40 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dance TT Optimizer - Balanced Anywhere</title>
+    <title>Dance TT Builder - Compare Mode</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --gray: #5f6368; --opt: #673ab7; }
-        body { font-family: "Helvetica Neue", Arial, sans-serif; padding: 20px; background: #f4f7f9; color: #333; }
-        .box { max-width: 850px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; }
+        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --opt: #673ab7; }
+        body { font-family: "Helvetica Neue", Arial, sans-serif; padding: 20px; background: #f4f7f9; color: #333; line-height: 1.6; }
+        .box { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; }
         h1 { text-align: center; color: var(--primary); margin-bottom: 25px; }
         section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        
+        /* メンバー・ユニット管理 */
         .m-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
-        .m-item { background: #fff; border: 1px solid #ddd; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 0.85rem; align-items: center; }
+        .m-item { background: #fff; border: 1px solid #ddd; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 0.85rem; }
         .u-form { background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; }
         .chip-container { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 8px; max-height: 200px; overflow-y: auto; }
-        .member-chip { cursor: pointer; padding: 6px 14px; border-radius: 20px; border: 1px solid #eee; background: #fff; font-size: 0.8rem; transition: 0.2s; }
+        .member-chip { cursor: pointer; padding: 6px 14px; border-radius: 20px; border: 1px solid #eee; background: #fff; font-size: 0.8rem; }
         .member-chip.selected { border-color: var(--primary); background: #e8f0fe; color: var(--primary); font-weight: bold; }
-        .u-card { background: #fff; border: 1px solid #e0e0e0; border-left: 8px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 8px; }
-        .u-card.pos-first { border-left-color: #ffc107; background: #fffdf0; }
-        .u-card.pos-last { border-left-color: #9c27b0; background: #fef0ff; }
-        .edit-tag-btn { font-size: 0.7rem; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; background: #fff; cursor: pointer; margin-right: 2px; }
-        .edit-tag-btn.active { background: #333; color: #fff; border-color: #333; }
-        button { cursor: pointer; border-radius: 8px; font-weight: bold; }
+        
+        /* 候補キープエリア */
+        .keep-area { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; padding: 15px; background: #eef2f7; border-radius: 12px; }
+        .keep-card { background: white; border: 2px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; min-width: 100px; text-align: center; position: relative; }
+        .keep-card.active { border-color: var(--opt); box-shadow: 0 0 8px rgba(103, 58, 183, 0.3); }
+        .keep-card:hover { background: #f9f9f9; }
+        .keep-del { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; line-height: 18px; }
+
+        /* ボタン・テーブル */
+        button { cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.2s; }
         .btn-blue { background: var(--primary); color: white; border: none; padding: 10px 20px; }
-        .btn-opt { background: var(--opt); color: white; border: none; width: 100%; font-size: 1.1rem; padding: 15px; margin-top: 10px; box-shadow: 0 4px 0 #4527a0; }
+        .btn-opt { background: var(--opt); color: white; border: none; width: 100%; font-size: 1.1rem; padding: 15px; margin-top: 10px; }
+        .btn-keep { background: #fff; color: var(--opt); border: 2px solid var(--opt); padding: 8px 15px; margin-top: 10px; }
         .btn-pdf { background: #f44336; color: white; border: none; width: 100%; padding: 12px; margin-top: 10px; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
         .row-r { background: #fff5f5; color: #e53e3e; font-weight: bold; }
+        .row-mc { background: #f0fdf4; color: #166534; font-weight: bold; }
         .no-print { display: block; }
+        .ins-btn { font-size: 10px; background: #fff; border: 1px dashed var(--primary); color: var(--primary); padding: 4px 8px; margin-right: 5px; }
     </style>
 </head>
 <body id="b">
 
 <div class="box">
-    <h1>Dance TT Builder Pro</h1>
+    <h1>Dance TT Builder - Compare</h1>
 
     <div class="no-print">
         <section>
@@ -57,20 +67,25 @@
         </section>
 
         <section>
-            <h3>3. 生成オプション</h3>
+            <h3>3. 編成パターン比較</h3>
             開始: <input type="time" id="sT" value="13:00"> 転換: <input type="number" id="tT" value="60" style="width:40px;"> 秒 休憩: <input type="number" id="rT" value="5" style="width:40px;"> 分
-            <button class="btn-opt" onclick="balancedOptimize()">⚡ 編成！</button>
+            <button class="btn-opt" onclick="balancedOptimize()">⚡ 新しいパターンを生成</button>
+            
+            <div id="compareArea" style="display:none; margin-top:15px;">
+                <button class="btn-keep" onclick="keepCurrentTT()">⭐ このパターンをキープする</button>
+                <div id="keepList" class="keep-area"></div>
+            </div>
         </section>
     </div>
 
     <div id="res" style="display:none;">
-        <h2 style="text-align:center;">TIME TABLE</h2>
+        <h2 id="currentTitle" style="text-align:center;">TIME TABLE</h2>
         <table id="ttTable">
             <thead><tr><th>時刻</th><th>内容</th><th>出演者</th><th>時間</th></tr></thead>
             <tbody id="tBody"></tbody>
         </table>
         <div class="no-print">
-            <button class="btn-pdf" onclick="generatePDF()">📄 PDF形式でダウンロード</button>
+            <button class="btn-pdf" onclick="generatePDF()">📄 表示中のパターンをPDF保存</button>
         </div>
     </div>
 </div>
@@ -78,7 +93,7 @@
 <script>
     const { jsPDF } = window.jspdf;
     function load(k){ try{ return JSON.parse(localStorage.getItem(k)) || []; }catch(e){ return []; } }
-    let members = load('dm9'), units = load('du9'), tt = [];
+    let members = load('dm11'), units = load('du11'), tt = [], keptTTs = [];
 
     function refresh() {
         members.sort((a, b) => a.localeCompare(b, 'ja'));
@@ -89,89 +104,56 @@
             cc.innerHTML += `<div class="member-chip" onclick="this.classList.toggle('selected')">${m}</div>`;
         });
         units.forEach((u, i) => {
-            ul.innerHTML += `<div class="u-card pos-${u.pos}"><div><b>${u.n}</b><br><small>👤${u.m.join(', ')}</small><div style="margin-top:8px;"><button class="edit-tag-btn ${u.pos==='none'?'active':''}" onclick="updateUIPos(${i},'none')">順不同</button><button class="edit-tag-btn ${u.pos==='first'?'active':''}" onclick="updateUIPos(${i},'first')">最初</button><button class="edit-tag-btn ${u.pos==='last'?'active':''}" onclick="updateUIPos(${i},'last')">最後</button></div></div><span onclick="delU(${i})" style="color:red;cursor:pointer">削除</span></div>`;
+            ul.innerHTML += `<div class="u-card" style="border-left:8px solid ${u.pos==='first'?'#ffc107':u.pos==='last'?'#9c27b0':'#ccc'}; background:#fff; padding:10px; margin-bottom:8px; border-radius:8px; border:1px solid #ddd;"><div style="display:flex;justify-content:space-between"><div><b>${u.n}</b><br><small>👤${u.m.join(', ')}</small><div style="margin-top:5px;"><button style="font-size:10px;" onclick="updateUIPos(${i},'none')">順不同</button><button style="font-size:10px;" onclick="updateUIPos(${i},'first')">最初</button><button style="font-size:10px;" onclick="updateUIPos(${i},'last')">最後</button></div></div><span onclick="delU(${i})" style="color:red;cursor:pointer">削除</span></div></div>`;
         });
-        localStorage.setItem('dm9', JSON.stringify(members)); localStorage.setItem('du9', JSON.stringify(units));
+        localStorage.setItem('dm11', JSON.stringify(members)); localStorage.setItem('du11', JSON.stringify(units));
     }
 
     function addM(){ const i = document.getElementById('mIn'); if(i.value.trim()){ members.push(i.value.trim()); i.value=''; refresh(); } }
     function delM(i){ members.splice(i,1); refresh(); }
     function addU(){
-        const n = document.getElementById('uIn').value.trim(), d = (parseInt(document.getElementById('uMin').value)||0)*60 + (parseInt(document.getElementById('uSec').value)||0), s = Array.from(document.querySelectorAll('.member-chip.selected')).map(el => el.innerText);
+        const n = document.getElementById('uIn').value.trim(), min = parseInt(document.getElementById('uMin').value)||0, sec = parseInt(document.getElementById('uSec').value)||0, d = (min*60)+sec, s = Array.from(document.querySelectorAll('.member-chip.selected')).map(el => el.innerText);
         if(!n || s.length===0) return alert("入力不足");
         units.push({ n, d, m: s, pos: 'none' }); document.getElementById('uIn').value=''; refresh();
     }
     function delU(i){ units.splice(i,1); refresh(); }
     function updateUIPos(idx, pos) { if(pos !== 'none') units.forEach((u, i) => { if(u.pos === pos) u.pos = 'none'; }); units[idx].pos = pos; refresh(); }
 
-    // --- 均等分散・評価型ロジック ---
     function balancedOptimize() {
         if(units.length === 0) return;
-        let bestPool = null;
-        let minScore = Infinity;
-
-        // 100パターン生成して一番「休憩の散らばり」が良いものを選ぶ
+        let bestPool = null, minScore = Infinity;
         for(let i=0; i<100; i++) {
             let pool = generateRandomPool();
             let score = evaluatePool(pool);
-            if(score < minScore) {
-                minScore = score;
-                bestPool = pool;
-            }
+            if(score < minScore) { minScore = score; bestPool = pool; }
         }
         buildFinalTT(bestPool);
+        document.getElementById('compareArea').style.display = 'block';
     }
 
     function generateRandomPool() {
-        let first = units.find(u => u.pos === 'first');
-        let last = units.find(u => u.pos === 'last');
-        let others = units.filter(u => u.pos === 'none').sort(() => Math.random() - 0.5);
-        
-        let pool = [];
-        if(first) pool.push(first);
-        
+        let first = units.find(u => u.pos === 'first'), last = units.find(u => u.pos === 'last'), others = units.filter(u => u.pos === 'none').sort(() => Math.random() - 0.5);
+        let pool = []; if(first) pool.push(first);
         let tempOthers = [...others];
         while(tempOthers.length > 0) {
-            let prev = pool[pool.length - 1];
-            // 重複がないものを優先的に探す（が、完全なランダム性も残す）
-            let candidates = tempOthers.filter(u => !u.m.some(m => prev ? prev.m.includes(m) : false));
-            let chosen;
-            if(candidates.length > 0 && Math.random() > 0.2) {
-                chosen = candidates[Math.floor(Math.random() * candidates.length)];
-            } else {
-                chosen = tempOthers[Math.floor(Math.random() * tempOthers.length)];
-            }
-            pool.push(chosen);
-            tempOthers = tempOthers.filter(u => u !== chosen);
+            let prev = pool[pool.length - 1], candidates = tempOthers.filter(u => !u.m.some(m => prev ? prev.m.includes(m) : false));
+            let chosen = (candidates.length > 0 && Math.random() > 0.1) ? candidates[Math.floor(Math.random() * candidates.length)] : tempOthers[Math.floor(Math.random() * tempOthers.length)];
+            pool.push(chosen); tempOthers = tempOthers.filter(u => u !== chosen);
         }
         if(last && !pool.includes(last)) pool.push(last);
         return pool;
     }
 
     function evaluatePool(pool) {
-        let breakPositions = [];
-        let lastM = [];
-        // 休憩が発生する場所を特定
+        let penalty = 0, lastM = [], lastPos = -1;
         pool.forEach((u, i) => {
             if(u.m.some(m => lastM.includes(m))) {
-                breakPositions.push(i);
+                penalty += Math.pow(i, 1.5);
+                if(lastPos !== -1 && i - lastPos <= 1) penalty += 200;
+                lastPos = i;
             }
             lastM = u.m;
         });
-
-        if(breakPositions.length === 0) return 0;
-
-        // ペナルティ計算: 
-        // 1. 後半に寄っているほど高い (固まり防止)
-        // 2. 休憩同士の距離が近いほど高い (連続防止)
-        let penalty = 0;
-        let lastPos = -1;
-        breakPositions.forEach(pos => {
-            penalty += Math.pow(pos, 1.5); // 後半ほど重く
-            if(lastPos !== -1 && pos - lastPos <= 1) penalty += 100; // 連続休憩は超重く
-            lastPos = pos;
-        });
-        
         return penalty;
     }
 
@@ -191,27 +173,61 @@
         draw();
     }
 
+    function keepCurrentTT() {
+        const name = "候補 " + (keptTTs.length + 1);
+        keptTTs.push({ name: name, data: JSON.parse(JSON.stringify(tt)) });
+        updateKeepList();
+    }
+
+    function updateKeepList() {
+        const list = document.getElementById('keepList');
+        list.innerHTML = '';
+        keptTTs.forEach((k, i) => {
+            list.innerHTML += `<div class="keep-card" onclick="loadKeptTT(${i})">${k.name}<span class="keep-del" onclick="event.stopPropagation();keptTTs.splice(${i},1);updateKeepList();">×</span></div>`;
+        });
+    }
+
+    function loadKeptTT(i) {
+        tt = JSON.parse(JSON.stringify(keptTTs[i].data));
+        document.getElementById('currentTitle').innerText = keptTTs[i].name;
+        document.querySelectorAll('.keep-card').forEach((c, idx) => c.classList.toggle('active', i === idx));
+        draw();
+    }
+
     function draw() {
         let cur = new Date(`2026/01/01 ${document.getElementById('sT').value}`);
         const body = document.getElementById('tBody'); body.innerHTML = '';
         tt.forEach((d, i) => {
-            const cls = d.type==='r'?'row-r':'';
-            body.innerHTML += `<tr class="${cls}"><td>${cur.toTimeString().split(' ')[0]}</td><td>${d.n} ${d.type==='mc'?`<span onclick="tt.splice(${i},1);draw()" style="color:red;cursor:pointer">[×]</span>`:''}</td><td>${d.m}</td><td>${Math.floor(d.d/60)}分${d.d%60}秒</td></tr>`;
-            if(i < tt.length - 1) body.innerHTML += `<tr class="no-print"><td colspan="4" style="padding:0"><button onclick="insMC(${i})" style="width:100%;font-size:10px;background:none;border:1px dashed var(--primary);color:var(--primary);cursor:pointer">+ MC挿入</button></td></tr>`;
+            const cls = d.type==='r'?'row-r':d.type==='mc'?'row-mc':'';
+            const canDel = (d.type==='r' || d.type==='mc');
+            body.innerHTML += `<tr class="${cls}"><td>${cur.toTimeString().split(' ')[0]}</td><td>${d.n} ${canDel?`<span onclick="tt.splice(${i},1);draw()" style="color:red;cursor:pointer;">[×]</span>`:''}</td><td>${d.m}</td><td>${Math.floor(d.d/60)}分${d.d%60}秒</td></tr>`;
+            if(i < tt.length - 1 && d.type !== 't') {
+                body.innerHTML += `<tr class="no-print"><td colspan="4" style="text-align:center;"><button class="ins-btn" onclick="insItem(${i},'mc')">+ MC</button><button class="ins-btn" onclick="insItem(${i},'r')">+ 休憩</button></td></tr>`;
+            }
             cur = new Date(cur.getTime() + d.d * 1000);
         });
         document.getElementById('res').style.display = 'block';
     }
 
-    function insMC(i){ const m = prompt("MC分", "5"); if(m){ tt.splice(i+1,0,{type:'mc',n:'【MC】トーク',d:parseInt(m)*60,m:'-'}); draw(); } }
+    function insItem(i, type){
+        const m = prompt("時間（分）", "5");
+        if(m){
+            tt.splice(i+1, 0, { type: type, n: type==='mc' ? '【MC】トーク' : '【休憩】自由時間', d: parseInt(m)*60, m: '-' });
+            draw();
+        }
+    }
+
     function generatePDF() {
-        const doc = new jsPDF(); doc.text("TIME TABLE", 14, 15); const rows = [];
+        const doc = new jsPDF();
+        const title = document.getElementById('currentTitle').innerText;
+        doc.text(title, 14, 15);
+        const rows = [];
         document.querySelectorAll("#tBody tr:not(.no-print)").forEach(tr => {
             const cells = tr.querySelectorAll("td");
             if(cells.length === 4) rows.push([cells[0].innerText, cells[1].innerText, cells[2].innerText, cells[3].innerText]);
         });
         doc.autoTable({ head: [['Time', 'Content', 'Performers', 'Duration']], body: rows, startY: 20, headStyles: { fillColor: [26, 115, 232] } });
-        doc.save("timetable.pdf");
+        doc.save(title + ".pdf");
     }
     refresh();
 </script>
