@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dance TT Builder - Compare Mode</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <title>Dance TT Builder - Pro Custom Order</title>
     <style>
         :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --opt: #673ab7; }
-        body { font-family: "Helvetica Neue", Arial, sans-serif; padding: 20px; background: #f4f7f9; color: #333; line-height: 1.6; }
+        body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; padding: 20px; background: #f4f7f9; color: #333; line-height: 1.6; }
         .box { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; }
         h1 { text-align: center; color: var(--primary); margin-bottom: 25px; }
         section { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
         
-        /* メンバー・ユニット管理 */
         .m-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
         .m-item { background: #fff; border: 1px solid #ddd; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; font-size: 0.85rem; }
         .u-form { background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid #eee; }
@@ -21,32 +18,38 @@
         .member-chip { cursor: pointer; padding: 6px 14px; border-radius: 20px; border: 1px solid #eee; background: #fff; font-size: 0.8rem; }
         .member-chip.selected { border-color: var(--primary); background: #e8f0fe; color: var(--primary); font-weight: bold; }
         
-        /* 候補キープエリア */
         .keep-area { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; padding: 15px; background: #eef2f7; border-radius: 12px; }
         .keep-card { background: white; border: 2px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; min-width: 100px; text-align: center; position: relative; }
         .keep-card.active { border-color: var(--opt); box-shadow: 0 0 8px rgba(103, 58, 183, 0.3); }
-        .keep-card:hover { background: #f9f9f9; }
         .keep-del { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; line-height: 18px; }
 
-        /* ボタン・テーブル */
         button { cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.2s; }
         .btn-blue { background: var(--primary); color: white; border: none; padding: 10px 20px; }
         .btn-opt { background: var(--opt); color: white; border: none; width: 100%; font-size: 1.1rem; padding: 15px; margin-top: 10px; }
         .btn-keep { background: #fff; color: var(--opt); border: 2px solid var(--opt); padding: 8px 15px; margin-top: 10px; }
-        .btn-pdf { background: #f44336; color: white; border: none; width: 100%; padding: 12px; margin-top: 10px; }
+        .btn-pdf { background: #f44336; color: white; border: none; width: 100%; padding: 15px; margin-top: 20px; font-size: 1.1rem; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
         .row-r { background: #fff5f5; color: #e53e3e; font-weight: bold; }
         .row-mc { background: #f0fdf4; color: #166534; font-weight: bold; }
-        .no-print { display: block; }
         .ins-btn { font-size: 10px; background: #fff; border: 1px dashed var(--primary); color: var(--primary); padding: 4px 8px; margin-right: 5px; }
+
+        /* 順番指定の入力欄 */
+        .order-input { width: 40px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+
+        @media print {
+            .no-print, .ins-btn, .keep-del, .keep-area, button { display: none !important; }
+            body { background: white; padding: 0; }
+            .box { box-shadow: none; max-width: 100%; padding: 0; }
+            tr { page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body id="b">
 
 <div class="box">
-    <h1>Dance TT Builder - Compare</h1>
+    <h1>Dance TT Builder</h1>
 
     <div class="no-print">
         <section>
@@ -67,12 +70,12 @@
         </section>
 
         <section>
-            <h3>3. 編成パターン比較</h3>
+            <h3>3. 生成 & パターン比較</h3>
             開始: <input type="time" id="sT" value="13:00"> 転換: <input type="number" id="tT" value="60" style="width:40px;"> 秒 休憩: <input type="number" id="rT" value="5" style="width:40px;"> 分
-            <button class="btn-opt" onclick="balancedOptimize()">⚡ 新しいパターンを生成</button>
+            <button class="btn-opt" onclick="balancedOptimize()">⚡ パターンを生成（番号指定を優先）</button>
             
             <div id="compareArea" style="display:none; margin-top:15px;">
-                <button class="btn-keep" onclick="keepCurrentTT()">⭐ このパターンをキープする</button>
+                <button class="btn-keep" onclick="keepCurrentTT()">⭐ このパターンを候補に保存</button>
                 <div id="keepList" class="keep-area"></div>
             </div>
         </section>
@@ -84,16 +87,13 @@
             <thead><tr><th>時刻</th><th>内容</th><th>出演者</th><th>時間</th></tr></thead>
             <tbody id="tBody"></tbody>
         </table>
-        <div class="no-print">
-            <button class="btn-pdf" onclick="generatePDF()">📄 表示中のパターンをPDF保存</button>
-        </div>
+        <button class="btn-pdf no-print" onclick="window.print()">📄 PDFとして保存（印刷プレビュー）</button>
     </div>
 </div>
 
 <script>
-    const { jsPDF } = window.jspdf;
     function load(k){ try{ return JSON.parse(localStorage.getItem(k)) || []; }catch(e){ return []; } }
-    let members = load('dm11'), units = load('du11'), tt = [], keptTTs = [];
+    let members = load('dm12'), units = load('du12'), tt = [], keptTTs = [];
 
     function refresh() {
         members.sort((a, b) => a.localeCompare(b, 'ja'));
@@ -104,9 +104,17 @@
             cc.innerHTML += `<div class="member-chip" onclick="this.classList.toggle('selected')">${m}</div>`;
         });
         units.forEach((u, i) => {
-            ul.innerHTML += `<div class="u-card" style="border-left:8px solid ${u.pos==='first'?'#ffc107':u.pos==='last'?'#9c27b0':'#ccc'}; background:#fff; padding:10px; margin-bottom:8px; border-radius:8px; border:1px solid #ddd;"><div style="display:flex;justify-content:space-between"><div><b>${u.n}</b><br><small>👤${u.m.join(', ')}</small><div style="margin-top:5px;"><button style="font-size:10px;" onclick="updateUIPos(${i},'none')">順不同</button><button style="font-size:10px;" onclick="updateUIPos(${i},'first')">最初</button><button style="font-size:10px;" onclick="updateUIPos(${i},'last')">最後</button></div></div><span onclick="delU(${i})" style="color:red;cursor:pointer">削除</span></div></div>`;
+            ul.innerHTML += `<div class="u-card" style="background:#fff; padding:10px; margin-bottom:8px; border-radius:8px; border:1px solid #ddd; border-left:8px solid #ccc;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div><b>${u.n}</b><br><small>👤${u.m.join(', ')}</small></div>
+                    <div style="text-align:right;">
+                        順番: <input type="number" class="order-input" value="${u.fixedOrder || ''}" onchange="updateOrder(${i}, this.value)" placeholder="任意">
+                        <span onclick="delU(${i})" style="color:red;cursor:pointer;margin-left:10px;">×</span>
+                    </div>
+                </div>
+            </div>`;
         });
-        localStorage.setItem('dm11', JSON.stringify(members)); localStorage.setItem('du11', JSON.stringify(units));
+        localStorage.setItem('dm12', JSON.stringify(members)); localStorage.setItem('du12', JSON.stringify(units));
     }
 
     function addM(){ const i = document.getElementById('mIn'); if(i.value.trim()){ members.push(i.value.trim()); i.value=''; refresh(); } }
@@ -114,10 +122,10 @@
     function addU(){
         const n = document.getElementById('uIn').value.trim(), min = parseInt(document.getElementById('uMin').value)||0, sec = parseInt(document.getElementById('uSec').value)||0, d = (min*60)+sec, s = Array.from(document.querySelectorAll('.member-chip.selected')).map(el => el.innerText);
         if(!n || s.length===0) return alert("入力不足");
-        units.push({ n, d, m: s, pos: 'none' }); document.getElementById('uIn').value=''; refresh();
+        units.push({ n, d, m: s, fixedOrder: null }); document.getElementById('uIn').value=''; refresh();
     }
     function delU(i){ units.splice(i,1); refresh(); }
-    function updateUIPos(idx, pos) { if(pos !== 'none') units.forEach((u, i) => { if(u.pos === pos) u.pos = 'none'; }); units[idx].pos = pos; refresh(); }
+    function updateOrder(i, val){ units[i].fixedOrder = val ? parseInt(val) : null; refresh(); }
 
     function balancedOptimize() {
         if(units.length === 0) return;
@@ -132,27 +140,36 @@
     }
 
     function generateRandomPool() {
-        let first = units.find(u => u.pos === 'first'), last = units.find(u => u.pos === 'last'), others = units.filter(u => u.pos === 'none').sort(() => Math.random() - 0.5);
-        let pool = []; if(first) pool.push(first);
-        let tempOthers = [...others];
-        while(tempOthers.length > 0) {
-            let prev = pool[pool.length - 1], candidates = tempOthers.filter(u => !u.m.some(m => prev ? prev.m.includes(m) : false));
-            let chosen = (candidates.length > 0 && Math.random() > 0.1) ? candidates[Math.floor(Math.random() * candidates.length)] : tempOthers[Math.floor(Math.random() * tempOthers.length)];
-            pool.push(chosen); tempOthers = tempOthers.filter(u => u !== chosen);
+        let pool = new Array(units.length).fill(null);
+        let remain = [];
+
+        // 固定されているものを配置
+        units.forEach(u => {
+            if(u.fixedOrder && u.fixedOrder > 0 && u.fixedOrder <= units.length) {
+                if(!pool[u.fixedOrder-1]) pool[u.fixedOrder-1] = u;
+                else remain.push(u); // 重複指定は一旦remainへ
+            } else {
+                remain.push(u);
+            }
+        });
+
+        // 残りをシャッフルして空きに埋める
+        remain.sort(() => Math.random() - 0.5);
+        for(let i=0; i<pool.length; i++){
+            if(!pool[i]) pool[i] = remain.shift();
         }
-        if(last && !pool.includes(last)) pool.push(last);
         return pool;
     }
 
     function evaluatePool(pool) {
         let penalty = 0, lastM = [], lastPos = -1;
         pool.forEach((u, i) => {
-            if(u.m.some(m => lastM.includes(m))) {
+            if(u && u.m.some(m => lastM.includes(m))) {
                 penalty += Math.pow(i, 1.5);
-                if(lastPos !== -1 && i - lastPos <= 1) penalty += 200;
+                if(lastPos !== -1 && i - lastPos <= 1) penalty += 500;
                 lastPos = i;
             }
-            lastM = u.m;
+            if(u) lastM = u.m;
         });
         return penalty;
     }
@@ -161,6 +178,7 @@
         const trans = parseInt(document.getElementById('tT').value)||0, rest = (parseInt(document.getElementById('rT').value)||0)*60;
         tt = []; let lastM = [];
         pool.forEach((u, i) => {
+            if(!u) return;
             const conflict = u.m.some(m => lastM.includes(m));
             if(conflict && tt.length > 0) {
                 if(tt[tt.length-1].type==='t') tt.pop();
@@ -180,8 +198,7 @@
     }
 
     function updateKeepList() {
-        const list = document.getElementById('keepList');
-        list.innerHTML = '';
+        const list = document.getElementById('keepList'); list.innerHTML = '';
         keptTTs.forEach((k, i) => {
             list.innerHTML += `<div class="keep-card" onclick="loadKeptTT(${i})">${k.name}<span class="keep-del" onclick="event.stopPropagation();keptTTs.splice(${i},1);updateKeepList();">×</span></div>`;
         });
@@ -190,7 +207,6 @@
     function loadKeptTT(i) {
         tt = JSON.parse(JSON.stringify(keptTTs[i].data));
         document.getElementById('currentTitle').innerText = keptTTs[i].name;
-        document.querySelectorAll('.keep-card').forEach((c, idx) => c.classList.toggle('active', i === idx));
         draw();
     }
 
@@ -199,8 +215,7 @@
         const body = document.getElementById('tBody'); body.innerHTML = '';
         tt.forEach((d, i) => {
             const cls = d.type==='r'?'row-r':d.type==='mc'?'row-mc':'';
-            const canDel = (d.type==='r' || d.type==='mc');
-            body.innerHTML += `<tr class="${cls}"><td>${cur.toTimeString().split(' ')[0]}</td><td>${d.n} ${canDel?`<span onclick="tt.splice(${i},1);draw()" style="color:red;cursor:pointer;">[×]</span>`:''}</td><td>${d.m}</td><td>${Math.floor(d.d/60)}分${d.d%60}秒</td></tr>`;
+            body.innerHTML += `<tr class="${cls}"><td>${cur.toTimeString().split(' ')[0]}</td><td>${d.n} ${ (d.type==='r'||d.type==='mc')?`<span class="no-print" onclick="tt.splice(${i},1);draw()" style="color:red;cursor:pointer;">[×]</span>`:'' }</td><td>${d.m}</td><td>${Math.floor(d.d/60)}分${d.d%60}秒</td></tr>`;
             if(i < tt.length - 1 && d.type !== 't') {
                 body.innerHTML += `<tr class="no-print"><td colspan="4" style="text-align:center;"><button class="ins-btn" onclick="insItem(${i},'mc')">+ MC</button><button class="ins-btn" onclick="insItem(${i},'r')">+ 休憩</button></td></tr>`;
             }
@@ -217,18 +232,6 @@
         }
     }
 
-    function generatePDF() {
-        const doc = new jsPDF();
-        const title = document.getElementById('currentTitle').innerText;
-        doc.text(title, 14, 15);
-        const rows = [];
-        document.querySelectorAll("#tBody tr:not(.no-print)").forEach(tr => {
-            const cells = tr.querySelectorAll("td");
-            if(cells.length === 4) rows.push([cells[0].innerText, cells[1].innerText, cells[2].innerText, cells[3].innerText]);
-        });
-        doc.autoTable({ head: [['Time', 'Content', 'Performers', 'Duration']], body: rows, startY: 20, headStyles: { fillColor: [26, 115, 232] } });
-        doc.save(title + ".pdf");
-    }
     refresh();
 </script>
 </body>
