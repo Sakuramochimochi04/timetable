@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dance TT Builder - Pro Custom Order</title>
+    <title>Dance TT Builder - Smart Coloring</title>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --opt: #673ab7; }
+        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --opt: #673ab7; --gray: #5f6368; }
         body { font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Meiryo", sans-serif; padding: 20px; background: #f4f7f9; color: #333; line-height: 1.6; }
         .box { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); position: relative; }
         h1 { text-align: center; color: var(--primary); margin-bottom: 25px; }
@@ -18,6 +18,22 @@
         .member-chip { cursor: pointer; padding: 6px 14px; border-radius: 20px; border: 1px solid #eee; background: #fff; font-size: 0.8rem; }
         .member-chip.selected { border-color: var(--primary); background: #e8f0fe; color: var(--primary); font-weight: bold; }
         
+        .unit-counter { 
+            margin: 20px 0 10px 0; padding: 10px; background: #fff; border-left: 5px solid var(--primary); 
+            font-weight: bold; font-size: 1.1rem; color: var(--gray); display: flex; align-items: center; justify-content: space-between;
+        }
+        .unit-count-num { color: var(--primary); font-size: 1.4rem; margin: 0 5px; }
+
+        /* ユニットカードの基本スタイル */
+        .u-card { 
+            padding: 10px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #ddd; 
+            border-left: 8px solid #ccc; transition: all 0.3s; background: #fff;
+        }
+        /* 固定状態による色の変化 */
+        .u-card.order-first { border-left-color: #ffc107; background: #fffdf0; }
+        .u-card.order-last { border-left-color: #9c27b0; background: #fef0ff; }
+        .u-card.order-fixed { border-left-color: #03a9f4; background: #f0faff; }
+
         .keep-area { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; padding: 15px; background: #eef2f7; border-radius: 12px; }
         .keep-card { background: white; border: 2px solid #ddd; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; min-width: 100px; text-align: center; position: relative; }
         .keep-card.active { border-color: var(--opt); box-shadow: 0 0 8px rgba(103, 58, 183, 0.3); }
@@ -34,12 +50,10 @@
         .row-r { background: #fff5f5; color: #e53e3e; font-weight: bold; }
         .row-mc { background: #f0fdf4; color: #166534; font-weight: bold; }
         .ins-btn { font-size: 10px; background: #fff; border: 1px dashed var(--primary); color: var(--primary); padding: 4px 8px; margin-right: 5px; }
-
-        /* 順番指定の入力欄 */
-        .order-input { width: 40px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: center; }
+        .order-input { width: 40px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: center; font-weight: bold; }
 
         @media print {
-            .no-print, .ins-btn, .keep-del, .keep-area, button { display: none !important; }
+            .no-print, .ins-btn, .keep-del, .keep-area, .unit-counter, button { display: none !important; }
             body { background: white; padding: 0; }
             .box { box-shadow: none; max-width: 100%; padding: 0; }
             tr { page-break-inside: avoid; }
@@ -66,13 +80,19 @@
                 <div id="chipContainer" class="chip-container"></div>
                 <button class="btn-blue" style="width:100%;" onclick="addU()">リストに追加</button>
             </div>
-            <div id="uList" style="margin-top:20px;"></div>
+            
+            <div id="unitCounterArea" class="unit-counter" style="display:none;">
+                <span>現在登録されているユニット数</span>
+                <span><span id="unitCountNum" class="unit-count-num">0</span> 件</span>
+            </div>
+
+            <div id="uList" style="margin-top:10px;"></div>
         </section>
 
         <section>
             <h3>3. 生成 & パターン比較</h3>
             開始: <input type="time" id="sT" value="13:00"> 転換: <input type="number" id="tT" value="60" style="width:40px;"> 秒 休憩: <input type="number" id="rT" value="5" style="width:40px;"> 分
-            <button class="btn-opt" onclick="balancedOptimize()">⚡ パターンを生成（番号指定を優先）</button>
+            <button class="btn-opt" onclick="balancedOptimize()">⚡ パターンを生成</button>
             
             <div id="compareArea" style="display:none; margin-top:15px;">
                 <button class="btn-keep" onclick="keepCurrentTT()">⭐ このパターンを候補に保存</button>
@@ -93,28 +113,40 @@
 
 <script>
     function load(k){ try{ return JSON.parse(localStorage.getItem(k)) || []; }catch(e){ return []; } }
-    let members = load('dm12'), units = load('du12'), tt = [], keptTTs = [];
+    let members = load('dm14'), units = load('du14'), tt = [], keptTTs = [];
 
     function refresh() {
         members.sort((a, b) => a.localeCompare(b, 'ja'));
         const mg = document.getElementById('mGrid'), cc = document.getElementById('chipContainer'), ul = document.getElementById('uList');
+        const counterArea = document.getElementById('unitCounterArea'), countNum = document.getElementById('unitCountNum');
+        
         mg.innerHTML = ''; cc.innerHTML = ''; ul.innerHTML = '';
+        const total = units.length;
+        if(total > 0) { counterArea.style.display = 'flex'; countNum.innerText = total; } 
+        else { counterArea.style.display = 'none'; }
+
         members.forEach((m, i) => {
             mg.innerHTML += `<div class="m-item"><span>${m}</span><span onclick="delM(${i})" style="color:red;cursor:pointer">×</span></div>`;
             cc.innerHTML += `<div class="member-chip" onclick="this.classList.toggle('selected')">${m}</div>`;
         });
+
         units.forEach((u, i) => {
-            ul.innerHTML += `<div class="u-card" style="background:#fff; padding:10px; margin-bottom:8px; border-radius:8px; border:1px solid #ddd; border-left:8px solid #ccc;">
+            let colorCls = '';
+            if(u.fixedOrder === 1) colorCls = 'order-first';
+            else if(u.fixedOrder === total && total > 0) colorCls = 'order-last';
+            else if(u.fixedOrder > 0) colorCls = 'order-fixed';
+
+            ul.innerHTML += `<div class="u-card ${colorCls}">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div><b>${u.n}</b><br><small>👤${u.m.join(', ')}</small></div>
                     <div style="text-align:right;">
-                        順番: <input type="number" class="order-input" value="${u.fixedOrder || ''}" onchange="updateOrder(${i}, this.value)" placeholder="任意">
+                        順番: <input type="number" class="order-input" value="${u.fixedOrder || ''}" onchange="updateOrder(${i}, this.value)" placeholder="-">
                         <span onclick="delU(${i})" style="color:red;cursor:pointer;margin-left:10px;">×</span>
                     </div>
                 </div>
             </div>`;
         });
-        localStorage.setItem('dm12', JSON.stringify(members)); localStorage.setItem('du12', JSON.stringify(units));
+        localStorage.setItem('dm14', JSON.stringify(members)); localStorage.setItem('du14', JSON.stringify(units));
     }
 
     function addM(){ const i = document.getElementById('mIn'); if(i.value.trim()){ members.push(i.value.trim()); i.value=''; refresh(); } }
@@ -142,22 +174,14 @@
     function generateRandomPool() {
         let pool = new Array(units.length).fill(null);
         let remain = [];
-
-        // 固定されているものを配置
         units.forEach(u => {
             if(u.fixedOrder && u.fixedOrder > 0 && u.fixedOrder <= units.length) {
                 if(!pool[u.fixedOrder-1]) pool[u.fixedOrder-1] = u;
-                else remain.push(u); // 重複指定は一旦remainへ
-            } else {
-                remain.push(u);
-            }
+                else remain.push(u);
+            } else remain.push(u);
         });
-
-        // 残りをシャッフルして空きに埋める
         remain.sort(() => Math.random() - 0.5);
-        for(let i=0; i<pool.length; i++){
-            if(!pool[i]) pool[i] = remain.shift();
-        }
+        for(let i=0; i<pool.length; i++){ if(!pool[i]) pool[i] = remain.shift(); }
         return pool;
     }
 
